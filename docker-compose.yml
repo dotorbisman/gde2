@@ -26,6 +26,14 @@ services:
       - "./redis/master/redis.conf:/etc/redis/redis.conf"
       - redis-master:/data
     command: redis-server /etc/redis/redis.conf
+  redis-slave:
+    container_name: redis-slave
+    image: redis:8.2.5-alpine
+    volumes:
+      - "./redis/slave/redis.conf:/etc/redis/redis.conf"
+      - redis-slave:/data
+    command: redis-server /etc/redis/redis.conf
 
 volumes:
   redis-master:
+  redis-slave:
