@@ -1,18 +1,31 @@
 services:
   haproxy1-ssl:
+    container_name: haprox1-ssl
     build: ./haproxy1-ssl
     volumes:
       - "./haproxy1-ssl/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     ports:
       - "8080:443"
   haproxy1-int:
+    container_name: haproxy1-int
     build: ./haproxy1-int
     volumes:
       - "./haproxy1-int/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     ports:
       - "443:80"
   java1:
+    container_name: java1
     image: nginx:latest   
   java2:
+    container_name: java2
     image: nginx:latest
+  redis-master:
+    container_name: redis-master
+    image: redis:8.2.5-alpine
+    volumes:
+      - "./redis/master/redis.conf:/etc/redis/redis.conf"
+      - redis-master:/data
+    command: redis-server /etc/redis/redis.conf
 
+volumes:
+  redis-master:
