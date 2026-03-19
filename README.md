@@ -4,28 +4,24 @@
 
 _Migración de una arquitectura de microservicios Java a Docker. El objetivo es reemplazar las máquinas virtuales actuales por contenedores._
 
-## Estado actual
-
-Se levantaron cuatro contenedores usando Docker Compose:
-
-**_haproxy1-ssl_**: recibe el tráfico externo en el puerto **8080** y lo reenvía al HAProxy interno.
-
-**_haproxy1-int_**: recibe el tráfico del SSL y lo balancea entre los servicios Java usando round robin.
-
-**_java1 y java2_**: contenedores nginx que simulan los servicios Java reales, accesibles solo dentro de la red interna de Docker.
-
 ## Cómo levantar el ambiente
 Parado en la carpeta **gde2**, ejecutar `docker compose up -d`. Para bajarlo, `docker compose down`.
 
 ## Estructura de archivos
 Cada componente tiene su propia carpeta con un **Dockerfile** y su archivo de configuración. El **docker-compose.yml** está en la raíz y orquesta todos los servicios.
 
-
+## Volúmenes
+Los archivos de configuración se montan como bind mounts. Los datos persistentes se almacenan en named volumes administrados por Docker.
 
 
 ## HAProxy
-Se crearon dos instancias de HAProxy basadas en la imagen **haproxy:2.8.** Cada una tiene su propio Dockerfile y archivo haproxy.cfg montado via bind mount. **haproxy1-ssl** escucha en el puerto **443** y reenvía el tráfico a **haproxy1-int**. **haproxy1-int** escucha en el puerto **80** y balancea el tráfico entre los servicios Java usando **round robin**.
+Se crearon dos instancias de HAProxy basadas en la imagen **haproxy:2.8.** Cada una tiene su propio Dockerfile y archivo haproxy.cfg montado via bind mount.
 
+**_haproxy1-ssl_**: recibe el tráfico externo en el puerto **443** y lo reenvía al HAProxy interno.
+
+**_haproxy1-int_**: recibe el tráfico del SSL por el puerto **80** y lo balancea entre los servicios Java usando round robin.
+
+**_java1 y java2_**: contenedores nginx que simulan los servicios Java reales, accesibles solo dentro de la red interna de Docker.
 
 ## Redis cluster
 Se configuró un cluster de Redis compuesto por tres servicios:
@@ -36,5 +32,27 @@ Se configuró un cluster de Redis compuesto por tres servicios:
 
 **redis-sentinel**: imagen **bitnami/redis-sentinel:latest**. Se descartó usar **redis:8.2.5-alpine** con **sentinel.conf** debido a un bug en Redis 8 donde el hostname del master se resuelve durante la lectura del archivo de configuración, antes de que la red de Docker esté disponible. La imagen de Bitnami resuelve esto configurando el sentinel via variables de entorno. El sentinel monitorea al master bajo el alias mymaster y tiene configurado depends_on con condition: service_healthy para garantizar que master y slave estén listos antes de arrancar.
 
-## Volúmenes
-Los archivos de configuración se montan como bind mounts. Los datos persistentes de master y slave se almacenan en named volumes administrados por Docker.
+## Solr
+Se agregó el servicio solr basado en la imagen **solr:9.10.1**. Se eligió esta versión por sobre la 10.0.0 siguiendo el criterio de no migrar y actualizar simultáneamente.
+El servicio expone el puerto **8983** hacia la máquina host, donde está disponible la interfaz de administración web. 
+Los datos se persisten en un named volume montado en **/var/solr** dentro del contenedor.
+
+Se creó un core de prueba llamado **test** usando el comando:
+
+`bashdocker exec -it solr solr create_core -c test`
+
+Se verificó que el core persiste correctamente ante reinicios del contenedor mediante `docker compose stop solr` y `docker compose start solr`.
+
+Estado actual del **docker ps**
+
+ 
+* haproxy1-ssl
+* haproxy1-int
+* java1
+* java2
+* redis-master
+* redis-slave
+* redis-sentinel
+* solr
+
+
