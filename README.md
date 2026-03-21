@@ -43,7 +43,61 @@ Se creó un core de prueba llamado **test** usando el comando:
 
 Se verificó que el core persiste correctamente ante reinicios del contenedor mediante `docker compose stop solr` y `docker compose start solr`.
 
-Estado actual del **docker ps**
+## WebDAV
+
+Servidor de archivos compartidos sobre HTTP usando Apache HTTP Server con `mod_dav`.
+
+**Imagen base:** `httpd:2.4-alpine`
+
+**Puerto:** `8081→80`
+
+**Volúmenes:**
+- `webdav` → `/usr/local/apache2/htdocs/`
+- `webdav-up` → `/usr/local/apache2/uploads/` (archivos subidos por WebDAV)
+
+**Estructura de archivos:**
+```
+webdav/
+    Dockerfile
+    httpd.conf
+    httpd-dav.conf
+    user.passwd
+```
+
+**Módulos Apache habilitados en `httpd.conf`:**
+```
+LoadModule dav_module modules/mod_dav.so
+LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule dav_lock_module modules/mod_dav_lock.so
+LoadModule auth_digest_module modules/mod_auth_digest.so
+LoadModule socache_dbm_module modules/mod_socache_dbm.so
+```
+
+**Notas importantes:**
+- Se usa `httpd-dav.conf` para configurar el endpoint `/uploads` con autenticación Digest
+- Se requiere instalar `apr-util-dbm_gdbm` vía `apk` porque la imagen Alpine no incluye el driver DBM necesario para `DavLockDB`
+- El archivo `user.passwd` se genera con `htdigest` dentro del contenedor y se copia al proyecto
+
+**Cómo regenerar `user.passwd`:**
+```bash
+docker exec -it webdav htdigest -c /usr/local/apache2/user.passwd DAV-upload admin
+docker cp webdav:/usr/local/apache2/user.passwd ./webdav/
+```
+
+**Verificar que WebDAV funciona:**
+```bash
+curl -v -X OPTIONS http://localhost:8081/uploads/
+# Debe mostrar: PROPFIND, PROPPATCH, COPY, MOVE, LOCK, UNLOCK, DELETE
+
+curl -v -T archivo.txt --digest -u admin:password http://localhost:8081/uploads/
+# Debe responder: 201 Created
+```
+
+
+
+
+
+# Estado actual del **docker ps**
 
  
 * haproxy1-ssl
@@ -55,4 +109,4 @@ Estado actual del **docker ps**
 * redis-sentinel
 * solr
 
-
+![Arquitectura Docker GDE2](docs/arq.png)
