@@ -207,4 +207,4 @@ Relevamiento de puertos en uso por todos los contenedores del proyecto. Los cont
 | `ldap` | - | `389 / 636` | Solo red interna Docker |
 
 
-![Arquitectura Docker appTest](docs/arq.png)
+![Arquitectura Docker appTest](docs/arq.svg)
