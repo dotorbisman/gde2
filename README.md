@@ -5,7 +5,7 @@
 _Migración de una arquitectura de microservicios Java a Docker. El objetivo es reemplazar las máquinas virtuales actuales por contenedores._
 
 ## Cómo levantar el ambiente
-Parado en la carpeta **gde2**, ejecutar `docker compose up -d`. Para bajarlo, `docker compose down`.
+Parado en la carpeta **appTest**, ejecutar `docker compose up -d`. Para bajarlo, `docker compose down`.
 
 ## Estructura de archivos
 Cada componente tiene su propia carpeta con un **Dockerfile** y su archivo de configuración. El **docker-compose.yml** está en la raíz y orquesta todos los servicios.
@@ -207,4 +207,4 @@ Relevamiento de puertos en uso por todos los contenedores del proyecto. Los cont
 | `ldap` | - | `389 / 636` | Solo red interna Docker |
 
 
-![Arquitectura Docker GDE2](docs/arq.png)
+![Arquitectura Docker appTest](docs/arq.png)
