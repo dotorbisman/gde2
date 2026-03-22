@@ -1,5 +1,7 @@
 # MICROs to DOCKER
 
+![Arquitectura Docker appTest](docs/portada.png)
+
 ## Alcance
 
 _Migración de una arquitectura de microservicios Java a Docker. El objetivo es reemplazar las máquinas virtuales actuales por contenedores._
