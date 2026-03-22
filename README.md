@@ -1,4 +1,4 @@
-# GDE2
+# MICROs to DOCKER
 
 ## Alcance
 
@@ -93,6 +93,118 @@ curl -v -T archivo.txt --digest -u admin:password http://localhost:8081/uploads/
 # Debe responder: 201 Created
 ```
 
+# LDAP
+
+Servidor de directorio centralizado de usuarios basado en OpenLDAP. Permite autenticación y autorización centralizada para todos los servicios de la plataforma.
+
+## Imagen
+
+```
+osixia/openldap:1.5.0
+```
+
+## Motivo de la imagen
+
+No existe imagen oficial en Docker Hub para OpenLDAP. La imagen de Bitnami fue discontinuada. Se utilizó `osixia/openldap` por ser la más mantenida y documentada de la comunidad.
+
+## Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `LDAP_ROOT` | Sufijo base del directorio. Ej: `dc=empresa,dc=com` |
+| `LDAP_ADMIN_USERNAME` | Usuario administrador del directorio |
+| `LDAP_ADMIN_PASSWORD` | Contraseña del administrador |
+| `LDAP_ORGANISATION` | Nombre de la organización raíz del árbol |
+
+## Volúmenes
+
+| Nombre | Ruta en contenedor | Descripción |
+|---|---|---|
+| `ldap_data` | `/var/lib/ldap` | Datos del directorio LDAP |
+| `ldap_config` | `/etc/ldap/slapd.d` | Configuración del servidor slapd |
+
+## Puertos
+
+No se exponen puertos al host. El servicio es accesible únicamente dentro de la red interna Docker por nombre de contenedor (`ldap`) en los puertos `389` (LDAP) y `636` (LDAPS).
+
+## Conceptos clave aprendidos
+
+- **LDAP (Lightweight Directory Access Protocol):** protocolo para acceder a directorios de usuarios organizados en forma de árbol jerárquico.
+- **Sufijo base (`dc=empresa,dc=com`):** raíz del árbol LDAP. Cada `dc=` representa un nivel del dominio.
+- **Dos volúmenes separados:** los datos del directorio y la configuración del servidor se persisten de forma independiente para facilitar backups y migraciones.
+- **Sin exposición de puertos al host:** LDAP no necesita ser accesible desde fuera de Docker; los servicios lo consumen internamente por nombre de contenedor.
+
+---
+
+## Dependencias de arranque (depends_on)
+
+Al agregar LDAP al proyecto, el orden de arranque de los contenedores cambió
+y comenzaron a aparecer errores de resolución de nombres en los HAProxy:
+
+- `haproxy1-int` no podía resolver `java1` y `java2`
+- `haproxy1-ssl` no podía resolver `haproxy1-int`
+
+La causa es que HAProxy intenta resolver los nombres de los servidores backend
+al momento de leer la configuración. Si el contenedor destino no está listo,
+falla con `could not resolve address`.
+
+### Solución
+
+Se agregaron dependencias explícitas con `depends_on` en el docker-compose:
+
+- `haproxy1-int` depende de `java1` y `java2` con `condition: service_started`
+- `haproxy1-ssl` depende de `haproxy1-int` con `condition: service_healthy`
+
+Para que `service_healthy` funcione, se agregó un healthcheck a `haproxy1-int`
+que valida la configuración con el propio binario de HAProxy:
+```yaml
+healthcheck:
+  test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+  interval: 5s
+  timeout: 3s
+  retries: 5
+```
+
+La imagen `haproxy:2.8` no incluye `wget` ni `curl`, por lo que no es posible
+hacer un healthcheck HTTP. Se usa el binario nativo como alternativa.
+
+### Stats de HAProxy
+
+Se habilitó el frontend de estadísticas en `haproxy1-int` agregando al cfg:
+```
+frontend stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+```
+
+Mapeando el puerto `8404:8404` en el docker-compose es accesible desde el host
+en `http://localhost:8404/stats`.
+
+## Conceptos clave aprendidos
+
+- El orden de arranque en Docker Compose sin `depends_on` es no determinista.
+- `service_started` alcanza cuando solo necesitás que el proceso haya iniciado.
+- `service_healthy` requiere que el contenedor tenga un healthcheck definido y lo pase.
+- Renombrar la carpeta raíz cambia el nombre de la red y el prefijo de los contenedores —
+  los contenedores anteriores quedan huérfanos y hay que eliminarlos manualmente.
+
+# Registro de puertos
+
+Relevamiento de puertos en uso por todos los contenedores del proyecto. Los contenedores sin puerto de host son accesibles únicamente dentro de la red interna Docker.
+
+| Contenedor | Puerto host | Puerto contenedor | Descripción |
+|---|---|---|---|
+| `haproxy1-ssl` | `8080` | `443` | HTTPS externo (SSL termination) |
+| `haproxy1-int` | `443` | `80` | Balanceo interno round-robin |
+| `java1` | - | - | Solo red interna Docker |
+| `java2` | - | - | Solo red interna Docker |
+| `redis-master` | - | `6379` | Solo red interna Docker |
+| `redis-slave` | - | `6379` | Solo red interna Docker |
+| `redis-sentinel` | - | `26379` | Solo red interna Docker |
+| `solr` | `8983` | `8983` | Panel admin Solr |
+| `webdav` | `8081` | `80` | WebDAV HTTP |
+| `ldap` | - | `389 / 636` | Solo red interna Docker |
 
 
 ![Arquitectura Docker GDE2](docs/arq.png)

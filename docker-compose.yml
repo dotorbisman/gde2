@@ -6,6 +6,9 @@ services:
       - "./haproxy1-ssl/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     ports:
       - "8080:443"
+    depends_on:
+      haproxy1-int:
+        condition: service_healthy
   haproxy1-int:
     container_name: haproxy1-int
     build: ./haproxy1-int
@@ -13,6 +16,17 @@ services:
       - "./haproxy1-int/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     ports:
       - "443:80"
+      - "8404:8404"
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      java1:
+        condition: service_started
+      java2:
+        condition: service_started
   java1:
     container_name: java1
     image: nginx:latest   
@@ -72,6 +86,18 @@ services:
       - webdav:/usr/local/apache2/htdocs/
       - webdav-up:/usr/local/apache2/uploads
       - webdav-var:/usr/local/apache2/var
+  ldap:
+    container_name: ldap
+    image: osixia/openldap:1.5.0
+    environment:
+      - LDAP_ROOT=dc=empresa,dc=com
+      - LDAP_ADMIN_USERNAME=admin 
+      - LDAP_ADMIN_PASSWORD=admin
+      - LDAP_ORGANISATION=apptest
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+
   
 volumes:
   redis-master:
@@ -80,3 +106,5 @@ volumes:
   webdav:
   webdav-up:
   webdav-var:
+  ldap_data:
+  ldap_config:
