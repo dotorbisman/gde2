@@ -6,6 +6,7 @@ services:
       - "./haproxy1-ssl/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     ports:
       - "8080:443"
+      - "8405:8404"
     depends_on:
       haproxy1-int:
         condition: service_healthy
@@ -109,9 +110,36 @@ services:
     container_name: ha1-int_exporter
     image:  quay.io/prometheus/haproxy-exporter:latest
     ports:
-      - "9101:9101"
+      - ":9101"
     command: --haproxy.scrape-uri="http://haproxy1-int:8404/stats"
-
+  ha1-ssl_exporter:
+    container_name: ha1-ssl_exporter
+    image:  quay.io/prometheus/haproxy-exporter:latest
+    ports:
+      - ":9101"
+    command: --haproxy.scrape-uri="http://haproxy1-ssl:8404/stats"
+  java1_exporter:
+    container_name: java1_exporter
+    image: nginx/nginx-prometheus-exporter:latest
+    ports:
+      - ":9113"
+    command: --nginx.scrape-uri=http://java1:80/stub_status
+  java2_exporter:
+    container_name: java2_exporter
+    image: nginx/nginx-prometheus-exporter:latest
+    ports:
+      - ":9113"
+    command: --nginx.scrape-uri=http://java2:80/stub_status
+  redis_exporter:
+    container_name: redis_exporter
+    image: oliver006/redis_exporter
+    ports:
+      - ":9121"
+  solr_exporter:
+    container_name: solr_exporter
+    image: noony/prometheus-solr-exporter
+    ports:
+      - ":9231"      
       
 volumes:
   redis-master:

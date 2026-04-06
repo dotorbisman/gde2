@@ -170,7 +170,7 @@ healthcheck:
 
 La imagen `haproxy:2.8` no incluye `wget` ni `curl`, por lo que no es posible hacer un healthcheck HTTP. Se usa el binario nativo como alternativa.
 
-**Stats de HAProxy:** se habilitó el frontend de estadísticas en `haproxy1-int` en el puerto `8404`, accesible desde el host en `http://localhost:8404/stats`.
+**Stats de HAProxy:** se habilitó el frontend de estadísticas en ambos HAProxy:
 
 ```
 frontend stats
@@ -178,6 +178,8 @@ frontend stats
     stats enable
     stats uri /stats
 ```
+
+`haproxy1-int` expone stats en `:8404`, `haproxy1-ssl` en `:8405` (mapeado desde el mismo puerto interno `8404`).
 
 **Conceptos clave:**
 - El orden de arranque en Docker Compose sin `depends_on` es no determinista.
@@ -189,54 +191,34 @@ frontend stats
 
 ## Observabilidad — Prometheus
 
-Se incorporó un stack de observabilidad compuesto por dos contenedores: un exporter que traduce las métricas de HAProxy al formato de Prometheus, y Prometheus mismo que las recolecta.
+Se incorporó un stack de observabilidad compuesto por Prometheus y un exporter por cada servicio monitoreable. Prometheus funciona en modo pull — va a buscar las métricas a cada exporter en el intervalo configurado.
 
-### Conceptos clave
+**Concepto clave — Exporter:** proceso intermediario que expone las métricas de un servicio en el formato que Prometheus entiende (`/metrics`). Cada tecnología tiene su propio exporter. Los exporters viven dentro de la red Docker y no exponen puertos al host.
 
-**Exporter:** Prometheus no puede leer métricas de cualquier servicio directamente. Necesita que estén expuestas en un endpoint HTTP con un formato específico (`/metrics`). Los servicios que no hablan ese formato necesitan un proceso intermediario llamado exporter que traduce sus métricas nativas al formato que Prometheus entiende.
-
-**Scraping:** Prometheus funciona en modo pull — es él quien va a buscar las métricas a cada target en el intervalo configurado. Si un target no responde, lo marca como `down` y reintenta. No rompe el proceso.
-
-**Pipeline de observabilidad:**
+**Pipeline general:**
 ```
-haproxy1-int (:8404/stats) → ha1-int_exporter (:9101/metrics) → prometheus (:9090)
+servicio → exporter:puerto/metrics → prometheus:9090
 ```
 
-### ha1-int_exporter
+### Exporters
 
-**Imagen:** `quay.io/prometheus/haproxy-exporter`  
-**Puerto:** `9101` (solo red interna Docker)
+| Contenedor | Imagen | Puerto interno | Scrape target |
+|---|---|---|---|
+| `ha1-int_exporter` | `quay.io/prometheus/haproxy-exporter` | `9101` | `haproxy1-int:8404/stats` |
+| `ha1-ssl_exporter` | `quay.io/prometheus/haproxy-exporter` | `9101` | `haproxy1-ssl:8404/stats` |
+| `java1_exporter` | `nginx/nginx-prometheus-exporter` | `9113` | `java1:80/stub_status` |
+| `java2_exporter` | `nginx/nginx-prometheus-exporter` | `9113` | `java2:80/stub_status` |
+| `redis_exporter` | `oliver006/redis_exporter` | `9121` | master / slave / sentinel |
+| `solr_exporter` | `noony/prometheus-solr-exporter` | `9231` | `solr:8983` |
 
-El exporter se conecta a las stats de HAProxy y las traduce al formato Prometheus. Se configura mediante el argumento `--haproxy.scrape-uri`:
+**Nota sobre puertos:** cada tipo de exporter tiene un puerto por defecto definido por el proyecto. Ese es el puerto donde el proceso escucha dentro del contenedor — no se elige libremente. Cuando hay múltiples instancias del mismo exporter (ej: dos HAProxy), el puerto interno es siempre el mismo; si se mapea al host, se usan puertos distintos para evitar conflictos.
 
-```yaml
-ha1-int_exporter:
-  container_name: ha1-int_exporter
-  image: quay.io/prometheus/haproxy-exporter:latest
-  ports:
-    - "9101:9101"
-  command: --haproxy.scrape-uri="http://haproxy1-int:8404/stats"
-```
-
-No requiere `depends_on` — si HAProxy no está disponible al arrancar, reintenta en el próximo ciclo.
-
-**Verificar que el exporter expone métricas:**
-```bash
-curl localhost:9101/metrics
-# Debe mostrar haproxy_up 1
-```
-
-La métrica clave para confirmar que el exporter llega a HAProxy es:
-```
-haproxy_up 1
-```
+**Nota sobre Redis:** la arquitectura es master/slave + sentinel, no un Redis Cluster. Se usa un único exporter con el patrón de múltiples targets en `prometheus.yml` via `/scrape` y `relabel_configs`.
 
 ### prometheus
 
 **Imagen:** `prom/prometheus`  
 **Puerto:** `9090→9090`
-
-La configuración se monta como bind mount desde `./prome/prometheus.yml`. El volumen de datos usa el path correcto para esta imagen (`/prometheus`).
 
 ```yaml
 prometheus:
@@ -249,32 +231,18 @@ prometheus:
     - prome:/prometheus
 ```
 
-**prometheus.yml:**
-```yaml
-global:
-  scrape_interval: 15s
-  external_labels:
-    monitor: 'codelab-monitor'
-
-scrape_configs:
-  - job_name: 'haprox1-int'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['ha1-int_exporter:9101']
-```
-
-**Reload en caliente** (sin reiniciar el contenedor):
+**Reload en caliente:**
 ```bash
 curl -X POST http://localhost:9090/-/reload
 ```
 
-**Verificar targets activos:**  
-`http://localhost:9090/targets` — el job `haprox1-int` debe aparecer con estado `UP`.
+**Verificar targets:**  
+`http://localhost:9090/targets`
 
 **Notas sobre la imagen:**
-- No existe Docker Official Image para Prometheus en Docker Hub. La imagen oficial la publica el propio proyecto bajo la organización `prom` (`prom/prometheus`).
-- La imagen `bitnami/prometheus` fue descontinuada — no está disponible en Docker Hub.
-- El path de datos de `prom/prometheus` es `/prometheus`, no `/opt/bitnami/prometheus/data`.
+- No existe Docker Official Image para Prometheus. La imagen oficial la publica el proyecto bajo la organización `prom`.
+- La imagen `bitnami/prometheus` fue descontinuada.
+- El path de datos es `/prometheus`.
 
 ---
 
@@ -330,45 +298,36 @@ VM configurada en VirtualBox con los siguientes parámetros:
 | Hostname | `oracle-db` |
 | Software | Server (sin GUI) |
 
-La instalación se realizó con el Full ISO de Oracle Linux 8.10 (`x86_64`). Se eligió **Server sin GUI** porque en producción los servidores de base de datos se administran exclusivamente por SSH — la GUI consume recursos que necesita Oracle y amplía innecesariamente la superficie de ataque.
-
 ### Instalación de Oracle Database 23ai Free
 
 Oracle 23ai Free reemplaza a Oracle XE como versión gratuita. Límites: 2 CPUs, 2 GB RAM para la instancia, 12 GB de datos.
 
-**1. Preinstall package** — configura automáticamente el sistema operativo:
+**1. Preinstall package:**
 ```bash
 dnf install -y oracle-database-preinstall-23ai
 ```
-Crea el usuario `oracle` (uid `54321`), grupos `oinstall`, `dba`, `oper`, `backupdba`, `dgdba`, `kmdba`, `racdba`, y ajusta parámetros del kernel requeridos por Oracle.
 
 **2. Instalación del motor:**
 ```bash
 dnf install -y https://download.oracle.com/otn-pub/otn_software/db-free/oracle-database-free-23ai-1.0-1.el8.x86_64.rpm
 ```
 
-**3. Inicialización de la base de datos:**
+**3. Inicialización:**
 ```bash
 /etc/init.d/oracle-free-23ai configure
 ```
-Crea la instancia, los archivos de datos y el diccionario de datos. Solicita contraseña para `SYS`, `SYSTEM` y `PDBADMIN`.
 
-**4. Variables de entorno del usuario oracle** (`~/.bash_profile`):
+**4. Variables de entorno** (`~/.bash_profile`):
 ```bash
 export ORACLE_HOME=/opt/oracle/product/23ai/dbhomeFree
 export ORACLE_SID=FREE
 export PATH=$PATH:$ORACLE_HOME/bin
 ```
 
-**5. Habilitado como servicio:**
+**5. Servicio y firewall:**
 ```bash
 systemctl enable oracle-free-23ai
-```
-
-**6. Apertura del firewall:**
-```bash
-firewall-cmd --permanent --add-port=1521/tcp
-firewall-cmd --reload
+firewall-cmd --permanent --add-port=1521/tcp && firewall-cmd --reload
 ```
 
 ### Información de la instancia
@@ -376,37 +335,9 @@ firewall-cmd --reload
 | Parámetro | Valor |
 |---|---|
 | SID | `FREE` |
-| CDB (Container Database) | `FREE` |
-| PDB (Pluggable Database) | `FREEPDB1` |
-| Puerto listener | `1521` |
-| String de conexión (PDB) | `oracle-db/FREEPDB1` |
-
-### Verificación
-
-```bash
-# Estado del servicio
-/etc/init.d/oracle-free-23ai status
-
-# Conectarse como SYSDBA
-su - oracle
-sqlplus / as sysdba
-
-# Verificar estado de la instancia
-SELECT status FROM v$instance;
-
-# Verificar PDB
-SELECT name, open_mode FROM v$pdbs;
-```
-
-Verificar conectividad desde Windows (PowerShell):
-```powershell
-Test-NetConnection -ComputerName 192.168.56.20 -Port 1521
-```
-
-Verificar conectividad desde Ubuntu:
-```bash
-curl -v telnet://192.168.56.20:1521
-```
+| CDB | `FREE` |
+| PDB | `FREEPDB1` |
+| Puerto | `1521` |
 
 ---
 
@@ -426,8 +357,9 @@ curl -v telnet://192.168.56.20:1521
 | Contenedor | Puerto host | Puerto contenedor | Descripción |
 |---|---|---|---|
 | `haproxy1-ssl` | `8080` | `443` | HTTPS externo (SSL termination) |
+| `haproxy1-ssl` | `8405` | `8404` | HAProxy SSL stats |
 | `haproxy1-int` | `443` | `80` | Balanceo interno round-robin |
-| `haproxy1-int` | `8404` | `8404` | HAProxy stats |
+| `haproxy1-int` | `8404` | `8404` | HAProxy INT stats |
 | `java1` | — | — | Solo red interna Docker |
 | `java2` | — | — | Solo red interna Docker |
 | `redis-master` | — | `6379` | Solo red interna Docker |
@@ -436,7 +368,12 @@ curl -v telnet://192.168.56.20:1521
 | `solr` | `8983` | `8983` | Panel admin Solr |
 | `webdav` | `8081` | `80` | WebDAV HTTP |
 | `ldap` | — | `389 / 636` | Solo red interna Docker |
-| `ha1-int_exporter` | — | `9101` | Exporter HAProxy → Prometheus |
+| `ha1-int_exporter` | — | `9101` | Exporter HAProxy INT → Prometheus |
+| `ha1-ssl_exporter` | — | `9101` | Exporter HAProxy SSL → Prometheus |
+| `java1_exporter` | — | `9113` | Exporter nginx java1 → Prometheus |
+| `java2_exporter` | — | `9113` | Exporter nginx java2 → Prometheus |
+| `redis_exporter` | — | `9121` | Exporter Redis → Prometheus |
+| `solr_exporter` | — | `9231` | Exporter Solr → Prometheus |
 | `prometheus` | `9090` | `9090` | Recolección de métricas |
 
 ### Servicios externos (fuera de Docker)

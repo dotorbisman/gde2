@@ -1,198 +1,202 @@
-<svg viewBox="0 0 960 860" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
+<svg viewBox="0 0 1000 980" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
 
-  <!-- Background -->
-  <rect width="960" height="860" fill="#0d1117"/>
+  <rect width="1000" height="980" fill="#0d1117"/>
+  <text x="500" y="36" text-anchor="middle" font-size="16" font-weight="bold" fill="#00d4ff" letter-spacing="3">appTest — ARQUITECTURA</text>
 
-  <!-- Title -->
-  <text x="480" y="36" text-anchor="middle" font-size="16" font-weight="bold" fill="#58a6ff" letter-spacing="3">appTest — ARQUITECTURA</text>
+  <!-- ZONA DOCKER -->
+  <rect x="20" y="55" width="960" height="795" rx="8" fill="none" stroke="#444d56" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="36" y="74" font-size="11" fill="#adbac7">VM Ubuntu 24 — Docker Host</text>
+  <text x="36" y="88" font-size="10" fill="#636e7b">192.168.0.x (bridge)  |  192.168.56.10 (host-only)</text>
 
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ZONA DOCKER (VM Ubuntu) -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <rect x="20" y="55" width="600" height="720" rx="8" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="36" y="74" font-size="11" fill="#8b949e">VM Ubuntu 24 — Docker Host</text>
-  <text x="36" y="88" font-size="10" fill="#484f58">192.168.0.x (bridge)  |  192.168.56.10 (host-only)</text>
-
-  <!-- Internet entry arrow -->
-  <text x="310" y="108" text-anchor="middle" font-size="10" fill="#8b949e">INTERNET / HOST :8080</text>
-  <line x1="310" y1="112" x2="310" y2="128" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Internet entry -->
+  <text x="300" y="108" text-anchor="middle" font-size="10" fill="#adbac7">INTERNET / HOST :8080</text>
+  <line x1="300" y1="112" x2="300" y2="128" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr-cyan)"/>
 
   <!-- haproxy1-ssl -->
-  <rect x="190" y="128" width="240" height="44" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="310" y="147" text-anchor="middle" font-size="11" font-weight="bold" fill="#58a6ff">haproxy1-ssl</text>
-  <text x="310" y="163" text-anchor="middle" font-size="10" fill="#8b949e">apptest-haproxy1-ssl  |  :8080→:443</text>
+  <rect x="170" y="128" width="260" height="44" rx="6" fill="#161b22" stroke="#00d4ff" stroke-width="2"/>
+  <text x="300" y="147" text-anchor="middle" font-size="11" font-weight="bold" fill="#00d4ff">haproxy1-ssl</text>
+  <text x="300" y="163" text-anchor="middle" font-size="10" fill="#adbac7">haproxy:2.8  |  :8080→:443  |  stats :8405</text>
 
-  <!-- ssl → int -->
-  <line x1="310" y1="172" x2="310" y2="192" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="300" y1="172" x2="300" y2="192" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr-cyan)"/>
 
   <!-- haproxy1-int -->
-  <rect x="190" y="192" width="240" height="50" rx="6" fill="#161b22" stroke="#388bfd" stroke-width="1.5"/>
-  <text x="310" y="212" text-anchor="middle" font-size="11" font-weight="bold" fill="#388bfd">haproxy1-int</text>
-  <text x="310" y="226" text-anchor="middle" font-size="10" fill="#8b949e">apptest-haproxy1-int  |  :443→:80</text>
-  <text x="310" y="238" text-anchor="middle" font-size="10" fill="#484f58">stats :8404  |  round robin</text>
+  <rect x="170" y="192" width="260" height="50" rx="6" fill="#161b22" stroke="#00aaff" stroke-width="2"/>
+  <text x="300" y="212" text-anchor="middle" font-size="11" font-weight="bold" fill="#00aaff">haproxy1-int</text>
+  <text x="300" y="226" text-anchor="middle" font-size="10" fill="#adbac7">haproxy:2.8  |  :443→:80  |  stats :8404</text>
+  <text x="300" y="238" text-anchor="middle" font-size="10" fill="#636e7b">round robin  |  healthcheck</text>
 
-  <!-- int → java1 y java2 -->
-  <line x1="260" y1="242" x2="175" y2="268" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="360" y1="242" x2="445" y2="268" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="255" y1="242" x2="175" y2="272" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <line x1="345" y1="242" x2="425" y2="272" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
 
   <!-- java1 -->
-  <rect x="80" y="268" width="190" height="44" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="175" y="287" text-anchor="middle" font-size="11" font-weight="bold" fill="#3fb950">java1</text>
-  <text x="175" y="303" text-anchor="middle" font-size="10" fill="#8b949e">nginx:latest  |  red interna</text>
+  <rect x="80" y="272" width="190" height="44" rx="6" fill="#161b22" stroke="#00ff88" stroke-width="2"/>
+  <text x="175" y="291" text-anchor="middle" font-size="11" font-weight="bold" fill="#00ff88">java1</text>
+  <text x="175" y="307" text-anchor="middle" font-size="10" fill="#adbac7">nginx:latest  |  red interna</text>
 
   <!-- java2 -->
-  <rect x="350" y="268" width="190" height="44" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="445" y="287" text-anchor="middle" font-size="11" font-weight="bold" fill="#3fb950">java2</text>
-  <text x="445" y="303" text-anchor="middle" font-size="10" fill="#8b949e">nginx:latest  |  red interna</text>
+  <rect x="330" y="272" width="190" height="44" rx="6" fill="#161b22" stroke="#00ff88" stroke-width="2"/>
+  <text x="425" y="291" text-anchor="middle" font-size="11" font-weight="bold" fill="#00ff88">java2</text>
+  <text x="425" y="307" text-anchor="middle" font-size="10" fill="#adbac7">nginx:latest  |  red interna</text>
 
-  <!-- ─── REDIS ─── -->
-  <rect x="30" y="342" width="560" height="110" rx="6" fill="none" stroke="#30363d" stroke-width="1" stroke-dasharray="4,2"/>
-  <text x="44" y="358" font-size="10" fill="#8b949e">Redis Cluster</text>
+  <!-- REDIS -->
+  <rect x="30" y="342" width="560" height="110" rx="6" fill="none" stroke="#444d56" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="44" y="358" font-size="10" fill="#adbac7">Redis Cluster</text>
 
-  <!-- redis-master -->
-  <rect x="44" y="364" width="160" height="76" rx="6" fill="#161b22" stroke="#f78166" stroke-width="1.5"/>
-  <text x="124" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#f78166">redis-master</text>
-  <text x="124" y="396" text-anchor="middle" font-size="10" fill="#8b949e">redis:8.2.5-alpine</text>
-  <text x="124" y="409" text-anchor="middle" font-size="10" fill="#484f58">auth + RDB</text>
-  <text x="124" y="422" text-anchor="middle" font-size="10" fill="#484f58">vol: redis-master</text>
-  <text x="124" y="435" text-anchor="middle" font-size="10" fill="#484f58">:6379 (interno)</text>
+  <rect x="44" y="364" width="160" height="76" rx="6" fill="#161b22" stroke="#ff4444" stroke-width="2"/>
+  <text x="124" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#ff4444">redis-master</text>
+  <text x="124" y="396" text-anchor="middle" font-size="10" fill="#adbac7">redis:8.2.5-alpine</text>
+  <text x="124" y="409" text-anchor="middle" font-size="10" fill="#636e7b">auth + RDB</text>
+  <text x="124" y="422" text-anchor="middle" font-size="10" fill="#636e7b">vol: redis-master  |  :6379</text>
 
-  <!-- redis-slave -->
-  <rect x="224" y="364" width="160" height="76" rx="6" fill="#161b22" stroke="#ffa657" stroke-width="1.5"/>
-  <text x="304" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffa657">redis-slave</text>
-  <text x="304" y="396" text-anchor="middle" font-size="10" fill="#8b949e">redis:8.2.5-alpine</text>
-  <text x="304" y="409" text-anchor="middle" font-size="10" fill="#484f58">replicaof master</text>
-  <text x="304" y="422" text-anchor="middle" font-size="10" fill="#484f58">vol: redis-slave</text>
-  <text x="304" y="435" text-anchor="middle" font-size="10" fill="#484f58">:6379 (interno)</text>
+  <rect x="224" y="364" width="160" height="76" rx="6" fill="#161b22" stroke="#ff8800" stroke-width="2"/>
+  <text x="304" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#ff8800">redis-slave</text>
+  <text x="304" y="396" text-anchor="middle" font-size="10" fill="#adbac7">redis:8.2.5-alpine</text>
+  <text x="304" y="409" text-anchor="middle" font-size="10" fill="#636e7b">replicaof master</text>
+  <text x="304" y="422" text-anchor="middle" font-size="10" fill="#636e7b">vol: redis-slave  |  :6379</text>
 
-  <!-- redis-sentinel -->
-  <rect x="404" y="364" width="170" height="76" rx="6" fill="#161b22" stroke="#d2a8ff" stroke-width="1.5"/>
-  <text x="489" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#d2a8ff">redis-sentinel</text>
-  <text x="489" y="396" text-anchor="middle" font-size="10" fill="#8b949e">bitnami/redis-sentinel</text>
-  <text x="489" y="409" text-anchor="middle" font-size="10" fill="#484f58">monitor: mymaster</text>
-  <text x="489" y="422" text-anchor="middle" font-size="10" fill="#484f58">:26379 (interno)</text>
-  <text x="489" y="435" text-anchor="middle" font-size="10" fill="#484f58">depends_on: healthy</text>
+  <rect x="404" y="364" width="170" height="76" rx="6" fill="#161b22" stroke="#cc44ff" stroke-width="2"/>
+  <text x="489" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#cc44ff">redis-sentinel</text>
+  <text x="489" y="396" text-anchor="middle" font-size="10" fill="#adbac7">bitnami/redis-sentinel</text>
+  <text x="489" y="409" text-anchor="middle" font-size="10" fill="#636e7b">monitor: mymaster</text>
+  <text x="489" y="422" text-anchor="middle" font-size="10" fill="#636e7b">:26379  |  depends_on: healthy</text>
 
-  <!-- sentinel → master/slave arrows -->
-  <line x1="404" y1="400" x2="204" y2="400" stroke="#d2a8ff" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrd)"/>
-  <line x1="404" y1="408" x2="384" y2="408" stroke="#d2a8ff" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrd)"/>
+  <line x1="404" y1="404" x2="204" y2="404" stroke="#cc44ff" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-purple)"/>
+  <line x1="404" y1="412" x2="384" y2="412" stroke="#cc44ff" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-purple)"/>
+  <line x1="204" y1="399" x2="224" y2="399" stroke="#ff8800" stroke-width="1.5" marker-end="url(#arr-orange)"/>
 
-  <!-- master → slave replication arrow -->
-  <line x1="204" y1="395" x2="224" y2="395" stroke="#ffa657" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- SOLR + WEBDAV + LDAP -->
+  <rect x="30" y="472" width="166" height="76" rx="6" fill="#161b22" stroke="#00ccff" stroke-width="2"/>
+  <text x="113" y="491" text-anchor="middle" font-size="11" font-weight="bold" fill="#00ccff">solr</text>
+  <text x="113" y="505" text-anchor="middle" font-size="10" fill="#adbac7">solr:9.10.1</text>
+  <text x="113" y="518" text-anchor="middle" font-size="10" fill="#636e7b">:8983→:8983  |  vol: /var/solr</text>
 
-  <!-- ─── SOLR + WEBDAV + LDAP ─── -->
-  <rect x="30" y="468" width="166" height="76" rx="6" fill="#161b22" stroke="#79c0ff" stroke-width="1.5"/>
-  <text x="113" y="487" text-anchor="middle" font-size="11" font-weight="bold" fill="#79c0ff">solr</text>
-  <text x="113" y="501" text-anchor="middle" font-size="10" fill="#8b949e">solr:9.10.1</text>
-  <text x="113" y="514" text-anchor="middle" font-size="10" fill="#484f58">:8983→:8983</text>
-  <text x="113" y="527" text-anchor="middle" font-size="10" fill="#484f58">vol: /var/solr</text>
+  <rect x="214" y="472" width="166" height="76" rx="6" fill="#161b22" stroke="#00ff66" stroke-width="2"/>
+  <text x="297" y="491" text-anchor="middle" font-size="11" font-weight="bold" fill="#00ff66">webdav</text>
+  <text x="297" y="505" text-anchor="middle" font-size="10" fill="#adbac7">httpd:2.4-alpine</text>
+  <text x="297" y="518" text-anchor="middle" font-size="10" fill="#636e7b">:8081→:80  |  digest auth</text>
 
-  <rect x="214" y="468" width="166" height="76" rx="6" fill="#161b22" stroke="#56d364" stroke-width="1.5"/>
-  <text x="297" y="487" text-anchor="middle" font-size="11" font-weight="bold" fill="#56d364">webdav</text>
-  <text x="297" y="501" text-anchor="middle" font-size="10" fill="#8b949e">httpd:2.4-alpine</text>
-  <text x="297" y="514" text-anchor="middle" font-size="10" fill="#484f58">:8081→:80</text>
-  <text x="297" y="527" text-anchor="middle" font-size="10" fill="#484f58">digest auth</text>
+  <rect x="398" y="472" width="166" height="76" rx="6" fill="#161b22" stroke="#ffdd00" stroke-width="2"/>
+  <text x="481" y="491" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffdd00">ldap</text>
+  <text x="481" y="505" text-anchor="middle" font-size="10" fill="#adbac7">osixia/openldap:1.5.0</text>
+  <text x="481" y="518" text-anchor="middle" font-size="10" fill="#636e7b">:389/:636  |  dc=empresa,dc=com</text>
 
-  <rect x="398" y="468" width="166" height="76" rx="6" fill="#161b22" stroke="#e3b341" stroke-width="1.5"/>
-  <text x="481" y="487" text-anchor="middle" font-size="11" font-weight="bold" fill="#e3b341">ldap</text>
-  <text x="481" y="501" text-anchor="middle" font-size="10" fill="#8b949e">osixia/openldap:1.5.0</text>
-  <text x="481" y="514" text-anchor="middle" font-size="10" fill="#484f58">:389/:636 (interno)</text>
-  <text x="481" y="527" text-anchor="middle" font-size="10" fill="#484f58">dc=empresa,dc=com</text>
+  <!-- OBSERVABILIDAD -->
+  <rect x="30" y="562" width="930" height="268" rx="6" fill="none" stroke="#444d56" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="44" y="578" font-size="10" fill="#adbac7">Observabilidad</text>
 
-  <!-- ─── OBSERVABILIDAD ─── -->
-  <rect x="30" y="562" width="560" height="200" rx="6" fill="none" stroke="#30363d" stroke-width="1" stroke-dasharray="4,2"/>
-  <text x="44" y="578" font-size="10" fill="#8b949e">Observabilidad</text>
+  <!-- Exporters -->
+  <rect x="44" y="586" width="148" height="68" rx="6" fill="#161b22" stroke="#ff6644" stroke-width="1.5"/>
+  <text x="118" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#ff6644">ha1-int_exporter</text>
+  <text x="118" y="615" text-anchor="middle" font-size="9" fill="#adbac7">haproxy-exporter</text>
+  <text x="118" y="628" text-anchor="middle" font-size="9" fill="#636e7b">→ haproxy1-int:8404</text>
+  <text x="118" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9101/metrics</text>
 
-  <!-- ha1-int_exporter -->
-  <rect x="44" y="588" width="200" height="76" rx="6" fill="#161b22" stroke="#ff7b72" stroke-width="1.5"/>
-  <text x="144" y="607" text-anchor="middle" font-size="11" font-weight="bold" fill="#ff7b72">ha1-int_exporter</text>
-  <text x="144" y="621" text-anchor="middle" font-size="10" fill="#8b949e">prom/haproxy-exporter</text>
-  <text x="144" y="634" text-anchor="middle" font-size="10" fill="#484f58">scrape: haproxy1-int:8404</text>
-  <text x="144" y="647" text-anchor="middle" font-size="10" fill="#484f58">:9101 (interno)</text>
-  <text x="144" y="660" text-anchor="middle" font-size="10" fill="#484f58">expone /metrics</text>
+  <rect x="202" y="586" width="148" height="68" rx="6" fill="#161b22" stroke="#ff6644" stroke-width="1.5"/>
+  <text x="276" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#ff6644">ha1-ssl_exporter</text>
+  <text x="276" y="615" text-anchor="middle" font-size="9" fill="#adbac7">haproxy-exporter</text>
+  <text x="276" y="628" text-anchor="middle" font-size="9" fill="#636e7b">→ haproxy1-ssl:8404</text>
+  <text x="276" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9101/metrics</text>
+
+  <rect x="360" y="586" width="148" height="68" rx="6" fill="#161b22" stroke="#44ff88" stroke-width="1.5"/>
+  <text x="434" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#44ff88">java1_exporter</text>
+  <text x="434" y="615" text-anchor="middle" font-size="9" fill="#adbac7">nginx-prom-exporter</text>
+  <text x="434" y="628" text-anchor="middle" font-size="9" fill="#636e7b">→ java1:80/stub_status</text>
+  <text x="434" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9113/metrics</text>
+
+  <rect x="518" y="586" width="148" height="68" rx="6" fill="#161b22" stroke="#44ff88" stroke-width="1.5"/>
+  <text x="592" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#44ff88">java2_exporter</text>
+  <text x="592" y="615" text-anchor="middle" font-size="9" fill="#adbac7">nginx-prom-exporter</text>
+  <text x="592" y="628" text-anchor="middle" font-size="9" fill="#636e7b">→ java2:80/stub_status</text>
+  <text x="592" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9113/metrics</text>
+
+  <rect x="676" y="586" width="148" height="68" rx="6" fill="#161b22" stroke="#ff4444" stroke-width="1.5"/>
+  <text x="750" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#ff4444">redis_exporter</text>
+  <text x="750" y="615" text-anchor="middle" font-size="9" fill="#adbac7">oliver006/redis_exporter</text>
+  <text x="750" y="628" text-anchor="middle" font-size="9" fill="#636e7b">master/slave/sentinel</text>
+  <text x="750" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9121/metrics</text>
+
+  <rect x="834" y="586" width="110" height="68" rx="6" fill="#161b22" stroke="#00ccff" stroke-width="1.5"/>
+  <text x="889" y="602" text-anchor="middle" font-size="10" font-weight="bold" fill="#00ccff">solr_exporter</text>
+  <text x="889" y="615" text-anchor="middle" font-size="9" fill="#adbac7">noony/solr-exporter</text>
+  <text x="889" y="628" text-anchor="middle" font-size="9" fill="#636e7b">→ solr:8983</text>
+  <text x="889" y="641" text-anchor="middle" font-size="9" fill="#636e7b">:9231/metrics</text>
+
+  <!-- exporters → prometheus arrows -->
+  <line x1="118" y1="654" x2="118" y2="694" stroke="#ff6644" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-red)"/>
+  <line x1="276" y1="654" x2="276" y2="694" stroke="#ff6644" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-red)"/>
+  <line x1="434" y1="654" x2="434" y2="694" stroke="#44ff88" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-green)"/>
+  <line x1="592" y1="654" x2="592" y2="694" stroke="#44ff88" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-green)"/>
+  <line x1="750" y1="654" x2="750" y2="694" stroke="#ff4444" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-red2)"/>
+  <line x1="889" y1="654" x2="889" y2="694" stroke="#00ccff" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-cyan2)"/>
 
   <!-- prometheus -->
-  <rect x="270" y="588" width="200" height="76" rx="6" fill="#161b22" stroke="#e6704a" stroke-width="1.5"/>
-  <text x="370" y="607" text-anchor="middle" font-size="11" font-weight="bold" fill="#e6704a">prometheus</text>
-  <text x="370" y="621" text-anchor="middle" font-size="10" fill="#8b949e">prom/prometheus</text>
-  <text x="370" y="634" text-anchor="middle" font-size="10" fill="#484f58">scrape: ha1-int_exporter:9101</text>
-  <text x="370" y="647" text-anchor="middle" font-size="10" fill="#484f58">:9090→:9090</text>
-  <text x="370" y="660" text-anchor="middle" font-size="10" fill="#484f58">reload: POST /-/reload</text>
+  <rect x="330" y="694" width="290" height="72" rx="6" fill="#161b22" stroke="#ff8800" stroke-width="2.5"/>
+  <text x="475" y="716" text-anchor="middle" font-size="12" font-weight="bold" fill="#ff8800">prometheus</text>
+  <text x="475" y="732" text-anchor="middle" font-size="10" fill="#adbac7">prom/prometheus  |  :9090→:9090</text>
+  <text x="475" y="746" text-anchor="middle" font-size="10" fill="#636e7b">reload: POST /-/reload</text>
+  <text x="475" y="760" text-anchor="middle" font-size="10" fill="#636e7b">vol: ./prome/prometheus.yml</text>
 
-  <!-- exporter → prometheus arrow -->
-  <line x1="244" y1="626" x2="270" y2="626" stroke="#e6704a" stroke-width="1.5" marker-end="url(#arro)"/>
+  <!-- scrape dashed lines service → exporter -->
+  <line x1="250" y1="217" x2="118" y2="586" stroke="#ff6644" stroke-width="0.7" stroke-dasharray="2,4"/>
+  <line x1="300" y1="172" x2="276" y2="586" stroke="#ff6644" stroke-width="0.7" stroke-dasharray="2,4"/>
+  <line x1="175" y1="316" x2="434" y2="586" stroke="#44ff88" stroke-width="0.7" stroke-dasharray="2,4"/>
+  <line x1="425" y1="316" x2="592" y2="586" stroke="#44ff88" stroke-width="0.7" stroke-dasharray="2,4"/>
+  <line x1="304" y1="440" x2="750" y2="586" stroke="#ff4444" stroke-width="0.7" stroke-dasharray="2,4"/>
+  <line x1="113" y1="548" x2="889" y2="586" stroke="#00ccff" stroke-width="0.7" stroke-dasharray="2,4"/>
 
-  <!-- haproxy1-int → exporter arrow (dashed, scrape) -->
-  <line x1="144" y1="242" x2="144" y2="570" stroke="#ff7b72" stroke-width="1" stroke-dasharray="3,2"/>
-  <line x1="144" y1="570" x2="144" y2="588" stroke="#ff7b72" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrr)"/>
+  <text x="500" y="830" text-anchor="middle" font-size="10" fill="#636e7b">red interna Docker: apptest_default</text>
 
-  <!-- observabilidad label -->
-  <text x="310" y="690" text-anchor="middle" font-size="10" fill="#484f58">pipeline: haproxy1-int:8404 → exporter:9101 → prometheus:9090</text>
+  <!-- HOST-ONLY NETWORK -->
+  <rect x="20" y="858" width="960" height="110" rx="8" fill="none" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="36" y="876" font-size="11" fill="#ff4444">VirtualBox Host-Only Network — 192.168.56.0/24</text>
 
-  <!-- ─── Docker network label ─── -->
-  <text x="310" y="750" text-anchor="middle" font-size="10" fill="#484f58">red interna Docker: apptest_default</text>
+  <rect x="36" y="884" width="180" height="74" rx="6" fill="#161b22" stroke="#00d4ff" stroke-width="2"/>
+  <text x="126" y="904" text-anchor="middle" font-size="11" font-weight="bold" fill="#00d4ff">Windows host</text>
+  <text x="126" y="919" text-anchor="middle" font-size="10" fill="#adbac7">192.168.56.1</text>
+  <text x="126" y="933" text-anchor="middle" font-size="10" fill="#636e7b">SSH / SQL Developer</text>
+  <text x="126" y="947" text-anchor="middle" font-size="10" fill="#636e7b">VirtualBox host</text>
 
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ZONA HOST-ONLY NETWORK -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <rect x="20" y="768" width="920" height="80" rx="8" fill="none" stroke="#f78166" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="36" y="784" font-size="11" fill="#f78166">VirtualBox Host-Only Network — 192.168.56.0/24</text>
+  <rect x="380" y="884" width="220" height="74" rx="6" fill="#161b22" stroke="#00ff88" stroke-width="2"/>
+  <text x="490" y="904" text-anchor="middle" font-size="11" font-weight="bold" fill="#00ff88">VM Ubuntu 24</text>
+  <text x="490" y="919" text-anchor="middle" font-size="10" fill="#adbac7">192.168.56.10</text>
+  <text x="490" y="933" text-anchor="middle" font-size="10" fill="#636e7b">gateway / IP forwarding</text>
+  <text x="490" y="947" text-anchor="middle" font-size="10" fill="#636e7b">NAT masquerading</text>
 
-  <!-- Windows host node -->
-  <rect x="36" y="792" width="160" height="50" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="116" y="812" text-anchor="middle" font-size="11" font-weight="bold" fill="#58a6ff">Windows host</text>
-  <text x="116" y="826" text-anchor="middle" font-size="10" fill="#8b949e">192.168.56.1  |  SSH / SQL Dev</text>
-  <text x="116" y="840" text-anchor="middle" font-size="10" fill="#484f58">VirtualBox host</text>
+  <rect x="740" y="884" width="220" height="74" rx="6" fill="#161b22" stroke="#ff4444" stroke-width="2"/>
+  <text x="850" y="904" text-anchor="middle" font-size="11" font-weight="bold" fill="#ff4444">VM Oracle Linux 8</text>
+  <text x="850" y="919" text-anchor="middle" font-size="10" fill="#adbac7">192.168.56.20  |  :1521</text>
+  <text x="850" y="933" text-anchor="middle" font-size="10" fill="#636e7b">Oracle 23ai Free</text>
+  <text x="850" y="947" text-anchor="middle" font-size="10" fill="#636e7b">SID: FREE  |  PDB: FREEPDB1</text>
 
-  <!-- Ubuntu node (host-only) -->
-  <rect x="350" y="792" width="200" height="50" rx="6" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="450" y="812" text-anchor="middle" font-size="11" font-weight="bold" fill="#3fb950">VM Ubuntu 24</text>
-  <text x="450" y="826" text-anchor="middle" font-size="10" fill="#8b949e">192.168.56.10</text>
-  <text x="450" y="840" text-anchor="middle" font-size="10" fill="#484f58">gateway / NAT masquerading</text>
+  <line x1="216" y1="921" x2="380" y2="921" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr-cyan)"/>
+  <line x1="600" y1="921" x2="740" y2="921" stroke="#ff4444" stroke-width="1.5" marker-end="url(#arr-red2)"/>
+  <text x="670" y="915" text-anchor="middle" font-size="9" fill="#ff4444">:1521</text>
+  <line x1="490" y1="854" x2="490" y2="884" stroke="#00ff88" stroke-width="1" stroke-dasharray="3,2"/>
 
-  <!-- Oracle node -->
-  <rect x="700" y="792" width="220" height="50" rx="6" fill="#161b22" stroke="#f78166" stroke-width="1.5"/>
-  <text x="810" y="812" text-anchor="middle" font-size="11" font-weight="bold" fill="#f78166">VM Oracle Linux 8</text>
-  <text x="810" y="826" text-anchor="middle" font-size="10" fill="#8b949e">192.168.56.20  |  :1521</text>
-  <text x="810" y="840" text-anchor="middle" font-size="10" fill="#484f58">Oracle 23ai Free  |  SID: FREE</text>
-
-  <!-- host-only connections -->
-  <line x1="196" y1="817" x2="350" y2="817" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="550" y1="817" x2="700" y2="817" stroke="#f78166" stroke-width="1.5" marker-end="url(#arr)"/>
-  <text x="625" y="811" text-anchor="middle" font-size="9" fill="#f78166">:1521</text>
-
-  <!-- Ubuntu Docker → host-only vertical connector -->
-  <line x1="450" y1="768" x2="450" y2="792" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,2"/>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- PENDIENTES -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <rect x="638" y="55" width="302" height="130" rx="8" fill="none" stroke="#30363d" stroke-width="1" stroke-dasharray="4,2"/>
-  <text x="654" y="74" font-size="10" fill="#484f58">Pendiente de migración</text>
-
-  <rect x="654" y="84" width="270" height="44" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="789" y="103" text-anchor="middle" font-size="11" fill="#484f58">Active MQ</text>
-  <text x="789" y="119" text-anchor="middle" font-size="10" fill="#3a3f47">por definir</text>
-
-  <rect x="654" y="136" width="270" height="44" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="789" y="155" text-anchor="middle" font-size="11" fill="#484f58">Adobe LC</text>
-  <text x="789" y="171" text-anchor="middle" font-size="10" fill="#3a3f47">por definir</text>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ARROW MARKERS -->
-  <!-- ═══════════════════════════════════════════════════════ -->
   <defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00d4ff"/>
     </marker>
-    <marker id="arrd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#d2a8ff"/>
+    <marker id="arr-cyan2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00ccff"/>
     </marker>
-    <marker id="arro" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#e6704a"/>
+    <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00aaff"/>
     </marker>
-    <marker id="arrr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#ff7b72"/>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#44ff88"/>
+    </marker>
+    <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff6644"/>
+    </marker>
+    <marker id="arr-red2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff4444"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff8800"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#cc44ff"/>
     </marker>
   </defs>
 

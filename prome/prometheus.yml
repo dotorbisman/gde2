@@ -9,12 +9,46 @@ global:
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'haprox1-int'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
+  - job_name: 'haprox1-int' # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+    scrape_interval: 5s    # Override the global default and scrape targets from this job every 5 seconds.
 
     static_configs:
       - targets: ['ha1-int_exporter:9101']
 
+  - job_name: 'haprox1-ssl'
+    scrape_interval: 5s    
+
+    static_configs:
+      - targets: ['ha1-ssl_exporter:9101']
+
+  - job_name: 'nginx'
+    scrape_interval: 5s    
+
+    static_configs:
+      - targets: ['java1_exporter:9113', 'java2_exporter:9113']
+      
+  - job_name: 'redis_exporter_targets'
+    scrape_interval: 5s
+
+    static_configs:
+      - targets:
+        - redis://redis-master:6379
+        - redis://redis-slave:6379
+        - redis://redis-sentinel:26379
+    metrics_path: /scrape
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: redis_exporter:9121
+        
+  - job_name: 'solr'
+    scrape_interval: 5s    
+
+    static_configs:
+      - targets: ['solr_exporter:9231']        
+
+
+      
