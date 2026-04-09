@@ -4,7 +4,7 @@
 
 ## Alcance
 
-_Migración de una arquitectura de microservicios Java a Docker. El objetivo es reemplazar las máquinas virtuales actuales por contenedores._
+_Una ciudad de microservicios en Docker. Stack completo con balanceo de carga, caché distribuido, búsqueda, observabilidad, generación de tráfico y base de datos externa.._
 
 ## Cómo levantar el ambiente
 
