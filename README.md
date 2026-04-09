@@ -298,12 +298,62 @@ URL: http://prometheus:9090
 
 Grafana permite importar dashboards de la comunidad desde [grafana.com/grafana/dashboards](https://grafana.com/grafana/dashboards) usando un ID numérico.
 
-| Dashboard | ID | Servicio |
-|---|---|---|
-| NGINX exporter | `12708` | ngx1, ngx2 |
-| HAProxy | `12693` | haproxy1-int, haproxy1-ssl |
+| Dashboard | ID | Servicio | Notas |
+|---|---|---|---|
+| NGINX exporter | `12708` | ngx1, ngx2 | — |
+| HAProxy | `12693` | haproxy1-int, haproxy1-ssl | Variable `host` corregida |
+| Redis Dashboard | `763` | redis-master, redis-slave, redis-sentinel | Requiere autenticación en exporter |
+| Solr Monitoring | — | solr | Creado desde cero |
 
 **Nota sobre el dashboard de HAProxy:** el dashboard `12693` usa una variable `host` que busca la etiqueta `instance` en la métrica `haproxy_process_nbproc`. Esta métrica no existe en el exporter legacy (`quay.io/prometheus/haproxy-exporter`). Se corrigió editando la variable desde **Settings → Variables → host** y cambiando el campo **Metric** a `haproxy_frontend_bytes_in_total`, que sí está disponible.
+
+### Redis Exporter — configuración y fix
+
+El exporter `oliver006/redis_exporter` requiere dos variables de entorno porque el redis-master tiene autenticación habilitada. Sin `REDIS_PASSWORD` el exporter se conecta pero recibe `NOAUTH Authentication required` y reporta `redis_up 0`.
+
+```yaml
+redis_exporter:
+  container_name: redis_exporter
+  image: oliver006/redis_exporter
+  ports:
+    - "9121:9121"
+  environment:
+    - REDIS_ADDR=redis://redis-master:6379
+    - REDIS_PASSWORD=<password_del_master>
+```
+
+**Fixes aplicados:**
+- Puerto mapeado como fijo `9121:9121` (evitar puerto efímero aleatorio como `32768`)
+- `REDIS_ADDR` apunta al contenedor por nombre de servicio, no por `localhost`
+- `REDIS_PASSWORD` necesario por la autenticación del cluster
+
+### Solr Exporter — configuración y fix
+
+La imagen `noony/prometheus-solr-exporter` usa flags con doble guión (`--`) y el address **no** debe incluir `/solr` al final — Solr 9 expone la API admin directamente en la raíz del puerto.
+
+```yaml
+solr_exporter:
+  container_name: solr_exporter
+  image: noony/prometheus-solr-exporter
+  ports:
+    - "9231:9231"
+  command: ["--solr.address", "http://solr:8983"]
+```
+
+**Fixes aplicados:**
+- Flag corregido de `-solr.address` (un guión, error) a `--solr.address` (doble guión)
+- URL corregida de `http://solr:8983/solr` a `http://solr:8983` (sin `/solr`)
+
+### Dashboard Solr Monitoring — creado desde cero
+
+Dashboard construido manualmente en Grafana usando las métricas del exporter `noony/prometheus-solr-exporter`.
+
+| Panel | Métrica | Tipo de visualización |
+|---|---|---|
+| JVM Heap Usage | `solr_jvm_memory_heap_usage` | Gauge |
+| JVM Heap Used | `solr_jvm_memory_heap_used` | Time series |
+| Threads Activos | `solr_jvm_threads_runnable_count` | Stat |
+| Open File Descriptors | `solr_jvm_os_openfiledescriptorcount` | Stat |
 
 **Recrear servicios individualmente:**
 ```bash

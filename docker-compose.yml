@@ -180,12 +180,16 @@ services:
     container_name: redis_exporter
     image: oliver006/redis_exporter
     ports:
-      - ":9121"
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis-master:6379
+      - REDIS_PASSWORD=muyfacil
   solr_exporter:
     container_name: solr_exporter
     image: noony/prometheus-solr-exporter
     ports:
-      - ":9231"
+      - "9231:9231"
+    command: ["--solr.address", "http://solr:8983"]
         
 # --- MOUNTED VOLUMES ---      
 volumes:
