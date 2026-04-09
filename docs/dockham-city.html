@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="Dockham City — Docker Infrastructure" />
+<meta property="og:description" content="Arquitectura completa de microservicios en Docker: HAProxy, Redis, Solr, Nginx, Prometheus, Grafana y más. Una ciudad de contenedores." />
+<meta property="og:image" content="https://dotorbisman.github.io/appTest/docs/portada.png" />
+<meta property="og:url" content="https://dotorbisman.github.io/appTest/appTest-docs.html" />
+<meta property="og:type" content="website" />
+<title>Dockham City — Docker Infrastructure</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c12;--bg2:#0d1520;--bg3:#111e2e;--bg4:#1a2535;
+  --ink:#c8d8e8;--ink2:#8090a8;--ink3:#4a5a6a;--line:#1e2e40;
+  --blue:#00c8e8;--blue-s:rgba(0,200,232,.08);
+  --red:#e84a3a;--red-s:rgba(232,74,58,.08);
+  --green:#00e87a;--green-s:rgba(0,232,122,.08);
+  --amber:#e8a030;--amber-s:rgba(232,160,48,.08);
+  --purple:#8a6ae8;--purple-s:rgba(138,106,232,.08);
+  --teal:#00a8c8;--teal-s:rgba(0,168,200,.08);
+  --slate:#4a7aa8;--slate-s:rgba(74,122,168,.08);
+  --orange:#e86a20;--orange-s:rgba(232,106,32,.08);
+  --mono:"JetBrains Mono",monospace;
+  --body:"DM Sans",sans-serif;
+  --display:"Lora",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;scroll-behavior:smooth;}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.8;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--ink3);border-radius:2px;} ::-webkit-scrollbar-track{background:var(--bg);}
+
+nav{position:sticky;top:0;z-index:200;background:rgba(8,12,18,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 36px;display:flex;align-items:center;overflow-x:auto;white-space:nowrap;}
+.nav-brand{font-family:var(--mono);font-size:11px;color:var(--ink);margin-right:16px;padding:13px 0;flex-shrink:0;font-weight:500;}
+nav a{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-decoration:none;padding:13px 9px;display:inline-block;border-bottom:2px solid transparent;transition:all .15s;}
+nav a:hover{color:var(--ink);border-bottom-color:var(--ink);}
+
+.hero{padding:0;background:var(--bg);border-bottom:2px solid var(--line);position:relative;overflow:hidden;}
+.hero::after{content:"";position:absolute;right:-60px;bottom:-60px;width:480px;height:480px;background:radial-gradient(circle,rgba(0,200,232,.06) 0%,transparent 65%);pointer-events:none;}
+.hero-tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.hero-tag::before{content:"";width:24px;height:1px;background:var(--blue);}
+.hero h1{font-family:var(--display);font-size:clamp(38px,5vw,64px);font-weight:700;line-height:1.05;letter-spacing:-.02em;margin-bottom:14px;}
+.hero h1 em{font-style:italic;font-weight:400;color:var(--blue);}
+.hero-sub{font-size:17px;color:var(--ink2);max-width:660px;line-height:1.7;margin-bottom:36px;}
+.pills{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:4px 12px;border-radius:100px;border:1px solid;}
+.p-blue{color:var(--blue);border-color:var(--blue);background:var(--blue-s);}
+.p-red{color:var(--red);border-color:var(--red);background:var(--red-s);}
+.p-green{color:var(--green);border-color:var(--green);background:var(--green-s);}
+.p-amber{color:var(--amber);border-color:var(--amber);background:var(--amber-s);}
+.p-purple{color:var(--purple);border-color:var(--purple);background:var(--purple-s);}
+.p-teal{color:var(--teal);border-color:var(--teal);background:var(--teal-s);}
+.p-slate{color:var(--slate);border-color:var(--slate);background:var(--slate-s);}
+
+.toc-wrap{padding:56px 64px;border-bottom:1px solid var(--line);background:var(--bg2);}
+.toc-title{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:24px;}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;}
+.toc-item{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line);border-radius:8px;text-decoration:none;background:var(--bg2);transition:all .15s;}
+.toc-item:hover{border-color:var(--blue);background:var(--blue-s);} .toc-item:hover .toc-t{color:var(--blue);}
+.toc-n{font-family:var(--display);font-size:24px;font-weight:700;color:var(--bg4);line-height:1;flex-shrink:0;}
+.toc-item:hover .toc-n{color:var(--blue);}
+.toc-t{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.toc-s{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+
+.ch-banner{padding:60px 64px 44px;background:var(--bg3);border-bottom:1px solid var(--line);}
+.ch-tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+.ch-banner h2{font-family:var(--display);font-size:clamp(28px,4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px;}
+.ch-banner p{font-size:16px;color:var(--ink2);max-width:680px;line-height:1.7;}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 48px;}
+.sec{padding:56px 0;border-bottom:1px solid var(--line);}
+.sec:last-child{border-bottom:none;}
+.sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+.sec h3{font-family:var(--display);font-size:24px;font-weight:700;margin-bottom:12px;letter-spacing:-.01em;}
+.sec p{font-size:15px;color:var(--ink2);line-height:1.8;margin-bottom:14px;}
+.sec p:last-child{margin-bottom:0;}
+.sec h4{font-family:var(--display);font-size:17px;font-weight:700;margin:22px 0 8px;color:var(--ink);}
+
+.box{padding:18px 22px;border-radius:10px;margin:20px 0;border:1px solid;display:flex;gap:12px;align-items:flex-start;}
+.box-icon{font-size:17px;flex-shrink:0;margin-top:2px;}
+.box p{font-size:14px;line-height:1.7;flex:1;color:var(--ink2);}
+.box strong{color:var(--ink);font-weight:600;}
+.b-blue{background:var(--blue-s);border-color:rgba(26,79,168,.2);}
+.b-green{background:var(--green-s);border-color:rgba(21,96,48,.2);}
+.b-amber{background:var(--amber-s);border-color:rgba(138,62,8,.2);}
+.b-red{background:var(--red-s);border-color:rgba(184,28,28,.2);}
+.b-purple{background:var(--purple-s);border-color:rgba(94,31,166,.2);}
+.b-teal{background:var(--teal-s);border-color:rgba(13,110,100,.2);}
+
+pre{font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--line);color:var(--ink2);border-radius:10px;padding:18px 22px;overflow-x:auto;line-height:1.85;color:var(--ink2);margin:18px 0;}
+code{font-family:var(--mono);font-size:12px;background:var(--bg3);padding:1px 6px;border-radius:4px;color:var(--ink);}
+
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:9px 14px;border-bottom:2px solid var(--line);}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink2);line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg2);}
+td:first-child{color:var(--ink);font-weight:500;font-family:var(--mono);font-size:12px;}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:18px 0;}
+.card{border:1px solid var(--line);border-radius:10px;padding:18px 20px;border-top:3px solid;background:var(--bg2);}
+.card.blue{border-top-color:var(--blue);}
+.card.red{border-top-color:var(--red);}
+.card.green{border-top-color:var(--green);}
+.card.amber{border-top-color:var(--amber);}
+.card.purple{border-top-color:var(--purple);}
+.card.teal{border-top-color:var(--teal);}
+.card.slate{border-top-color:var(--slate);}
+.card.orange{border-top-color:var(--orange);}
+.card-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.card.blue .card-lbl{color:var(--blue);}
+.card.red .card-lbl{color:var(--red);}
+.card.green .card-lbl{color:var(--green);}
+.card.amber .card-lbl{color:var(--amber);}
+.card.purple .card-lbl{color:var(--purple);}
+.card.teal .card-lbl{color:var(--teal);}
+.card.slate .card-lbl{color:var(--slate);}
+.card.orange .card-lbl{color:var(--orange);}
+.card h5{font-size:13.5px;font-weight:600;margin-bottom:6px;color:var(--ink);}
+.card p{font-size:12.5px;color:var(--ink2);line-height:1.65;}
+
+.flow{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:18px 0;}
+.flow-row{display:grid;grid-template-columns:160px 1fr;border-bottom:1px solid var(--line);}
+.flow-row:last-child{border-bottom:none;}
+.flow-lbl{padding:13px 14px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;border-right:1px solid var(--line);}
+.flow-lbl.blue{color:var(--blue);background:var(--blue-s);}
+.flow-lbl.green{color:var(--green);background:var(--green-s);}
+.flow-lbl.amber{color:var(--amber);background:var(--amber-s);}
+.flow-lbl.red{color:var(--red);background:var(--red-s);}
+.flow-lbl.purple{color:var(--purple);background:var(--purple-s);}
+.flow-lbl.teal{color:var(--teal);background:var(--teal-s);}
+.flow-lbl.slate{color:var(--slate);background:var(--slate-s);}
+.flow-cnt{padding:11px 16px;font-size:13.5px;color:var(--ink2);display:flex;align-items:center;flex-wrap:wrap;gap:8px;line-height:1.65;}
+
+.steps{display:flex;flex-direction:column;}
+.step{display:grid;grid-template-columns:48px 1fr;padding:20px 0;border-bottom:1px solid var(--line);}
+.step:last-child{border-bottom:none;}
+.step-n{font-family:var(--display);font-size:30px;font-weight:700;color:var(--bg4);line-height:1;}
+.step-b h4{font-size:14.5px;font-weight:600;margin-bottom:5px;color:var(--ink);}
+.step-b p{font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:6px;}
+
+.div{display:flex;align-items:center;gap:12px;margin:24px 0;}
+.div span{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);white-space:nowrap;}
+.div::before,.div::after{content:"";flex:1;height:1px;background:var(--line);}
+
+footer{padding:36px 64px;border-top:2px solid var(--line);background:var(--bg);text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.08em;}
+
+@media(max-width:700px){
+  .hero,.ch-banner,.toc-wrap{padding:44px 20px 32px;}
+  .wrap{padding:0 16px;}
+  nav{padding:0 16px;}
+  .flow-row{grid-template-columns:1fr;}
+  .flow-lbl{border-right:none;border-bottom:1px solid var(--line);}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Dockham City</div>
+  <a href="#ch1">HAProxy</a>
+  <a href="#ch2">Redis</a>
+  <a href="#ch3">Solr</a>
+  <a href="#ch4">WebDAV</a>
+  <a href="#ch5">LDAP</a>
+  <a href="#ch6">Dependencias</a>
+  <a href="#ch7">Prometheus</a>
+  <a href="#ch8">Grafana</a>
+  <a href="#ch9">Oracle</a>
+  <a href="#ch10">Puertos</a>
+<a href="#ch11">Traffic Gen</a>
+</nav>
+
+<div class="hero" style="padding:0;position:relative;min-height:520px;display:flex;flex-direction:column;justify-content:flex-end;">
+  <div style="position:absolute;inset:0;background-image:url('docs/portada.png');background-size:cover;background-position:center top;z-index:0;"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(8,12,18,0.1) 0%, rgba(8,12,18,0.5) 55%, rgba(8,12,18,0.97) 100%);z-index:1;"></div>
+  <div style="position:relative;z-index:2;padding:60px 64px 56px;">
+    <div class="hero-tag" style="color:var(--blue);">Infraestructura como código — Docker</div>
+    <h1 style="font-family:var(--display);font-size:clamp(52px,7vw,96px);font-weight:700;line-height:1;letter-spacing:-.03em;margin-bottom:16px;color:#ffffff;text-shadow:0 2px 40px rgba(0,0,0,.8);">Dockham <em style="font-style:italic;font-weight:400;color:var(--blue);">City</em></h1>
+    <p class="hero-sub" style="color:var(--ink2);max-width:640px;font-size:16px;line-height:1.7;margin-bottom:32px;text-shadow:0 1px 8px rgba(0,0,0,.6);">Una ciudad de microservicios en Docker. Stack completo con balanceo de carga, caché distribuido, búsqueda, observabilidad, generación de tráfico y base de datos externa.</p>
+    <div class="pills">
+      <span class="pill p-blue">HAProxy SSL + INT</span>
+      <span class="pill p-red">Redis Master/Slave/Sentinel</span>
+      <span class="pill p-green">Solr 9.10.1</span>
+      <span class="pill p-amber">Prometheus + Exporters</span>
+      <span class="pill p-purple">Grafana Dashboards</span>
+      <span class="pill p-teal">WebDAV · LDAP</span>
+      <span class="pill p-slate">Oracle 23ai Free</span>
+    </div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <div class="toc-title">11 Secciones</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#ch1"><div class="toc-n">01</div><div><div class="toc-t">HAProxy</div><div class="toc-s">SSL termination · Balanceo · Stats</div></div></a>
+    <a class="toc-item" href="#ch2"><div class="toc-n">02</div><div><div class="toc-t">Redis Cluster</div><div class="toc-s">Master · Slave · Sentinel · Auth</div></div></a>
+    <a class="toc-item" href="#ch3"><div class="toc-n">03</div><div><div class="toc-t">Solr</div><div class="toc-s">9.10.1 · Core · Persistencia</div></div></a>
+    <a class="toc-item" href="#ch4"><div class="toc-n">04</div><div><div class="toc-t">WebDAV</div><div class="toc-s">Apache · mod_dav · Auth Digest</div></div></a>
+    <a class="toc-item" href="#ch5"><div class="toc-n">05</div><div><div class="toc-t">LDAP</div><div class="toc-s">OpenLDAP · osixia · Directorio</div></div></a>
+    <a class="toc-item" href="#ch6"><div class="toc-n">06</div><div><div class="toc-t">Dependencias de arranque</div><div class="toc-s">depends_on · healthcheck · orden</div></div></a>
+    <a class="toc-item" href="#ch7"><div class="toc-n">07</div><div><div class="toc-t">Prometheus</div><div class="toc-s">Exporters · Scrape · Pipeline</div></div></a>
+    <a class="toc-item" href="#ch8"><div class="toc-n">08</div><div><div class="toc-t">Grafana</div><div class="toc-s">Dashboards · Redis · Solr · HAProxy</div></div></a>
+    <a class="toc-item" href="#ch9"><div class="toc-n">09</div><div><div class="toc-t">Oracle 23ai Free</div><div class="toc-s">VM dedicada · Red segmentada · NAT</div></div></a>
+    <a class="toc-item" href="#ch10"><div class="toc-n">10</div><div><div class="toc-t">Registro de puertos</div><div class="toc-s">VMs · Contenedores · Servicios externos</div></div></a>
+    <a class="toc-item" href="#ch11"><div class="toc-n">11</div><div><div class="toc-t">Traffic Generator</div><div class="toc-s">Tráfico sostenido · Grafana · Workers</div></div></a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH1 HAPROXY -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch1">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 01</div>
+  <h2>HAProxy</h2>
+  <p>Dos instancias de HAProxy encadenadas: una para SSL termination expuesta al exterior, otra para balanceo interno entre los backends Nginx. Cada instancia tiene su propio Dockerfile y configuración montada via bind mount.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Flujo de tráfico</div>
+  <h3>Arquitectura en dos capas</h3>
+  <div class="flow">
+    <div class="flow-row"><div class="flow-lbl blue">haproxy1-ssl</div><div class="flow-cnt">Recibe tráfico externo en el puerto <strong>443</strong>. Termina SSL y reenvía al HAProxy interno. Stats en <code>:8405</code>.</div></div>
+    <div class="flow-row"><div class="flow-lbl blue">haproxy1-int</div><div class="flow-cnt">Recibe tráfico del SSL en el puerto <strong>80</strong>. Balancea entre <code>ngx1</code> y <code>ngx2</code> usando round robin. Stats en <code>:8404</code>.</div></div>
+    <div class="flow-row"><div class="flow-lbl green">ngx1 / ngx2</div><div class="flow-cnt">Contenedores Nginx que simulan los servicios Java reales. Solo accesibles dentro de la red interna Docker. Exponen <code>/stub_status</code> en puerto 80.</div></div>
+  </div>
+
+  <h4>Stub status en Nginx</h4>
+  <pre>server {
+    listen 80;
+
+    location /stub_status {
+        stub_status;
+    }
+}</pre>
+
+  <h4>Stats de HAProxy</h4>
+  <pre>frontend stats
+    bind *:8404
+    stats enable
+    stats uri /stats</pre>
+
+  <div class="box b-amber">
+    <div class="box-icon">⚠️</div>
+    <p><strong>Healthcheck en haproxy1-int:</strong> la imagen <code>haproxy:2.8</code> no incluye <code>wget</code> ni <code>curl</code>. El healthcheck usa el binario nativo de HAProxy para validar la configuración.</p>
+  </div>
+
+  <pre>healthcheck:
+  test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+  interval: 5s
+  timeout: 3s
+  retries: 5</pre>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH2 REDIS -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch2">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 02</div>
+  <h2>Redis Cluster</h2>
+  <p>Arquitectura master/slave con sentinel para alta disponibilidad. No es un Redis Cluster en sentido estricto — es replicación con failover automático via Sentinel. Imagen Bitnami para el sentinel debido a un bug en Redis 8 con la resolución de hostnames.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Componentes</div>
+  <h3>Tres servicios coordinados</h3>
+  <div class="cards">
+    <div class="card blue">
+      <div class="card-lbl">redis-master</div>
+      <h5>Master</h5>
+      <p>Imagen <code>redis:8.2.5-alpine</code>. Autenticación habilitada. Persistencia RDB en named volume <code>redis-master</code>. Bind en <code>0.0.0.0:6379</code>.</p>
+    </div>
+    <div class="card green">
+      <div class="card-lbl">redis-slave</div>
+      <h5>Slave</h5>
+      <p>Imagen <code>redis:8.2.5-alpine</code>. Replica al master via <code>replicaof redis-master 6379</code>. Persistencia RDB en named volume <code>redis-slave</code>.</p>
+    </div>
+    <div class="card amber">
+      <div class="card-lbl">redis-sentinel</div>
+      <h5>Sentinel</h5>
+      <p>Imagen <code>bitnami/redis-sentinel:latest</code>. Monitorea al master bajo alias <code>mymaster</code>. Configurado via variables de entorno para evitar bug de resolución de hostnames en Redis 8.</p>
+    </div>
+  </div>
+
+  <div class="box b-blue">
+    <div class="box-icon">ℹ️</div>
+    <p><strong>¿Por qué Bitnami para el sentinel?</strong> En Redis 8, el hostname del master se resuelve al leer <code>sentinel.conf</code>, antes de que la red Docker esté disponible. La imagen Bitnami configura el sentinel via variables de entorno, evitando el problema. El sentinel tiene <code>depends_on</code> con <code>condition: service_healthy</code> sobre master y slave.</p>
+  </div>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH3 SOLR -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch3">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 03</div>
+  <h2>Solr</h2>
+  <p>Motor de búsqueda basado en Apache Lucene. Versión 9.10.1 elegida sobre la 10.0.0 aplicando el criterio de no migrar y actualizar simultáneamente.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Configuración</div>
+  <h3>Instalación y core de prueba</h3>
+  <p>El servicio expone el puerto <strong>8983</strong> al host, donde está disponible la interfaz de administración web. Los datos se persisten en un named volume montado en <code>/var/solr</code> dentro del contenedor.</p>
+
+  <pre># Crear core de prueba
+docker exec -it solr solr create_core -c test
+
+# Verificar que el core persiste ante reinicios
+docker compose stop solr
+docker compose start solr</pre>
+
+  <div class="box b-green">
+    <div class="box-icon">✅</div>
+    <p><strong>Verificación de persistencia:</strong> el core <code>test</code> persiste correctamente ante reinicios del contenedor gracias al named volume.</p>
+  </div>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH4 WEBDAV -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch4">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 04</div>
+  <h2>WebDAV</h2>
+  <p>Servidor de archivos compartidos sobre HTTP usando Apache HTTP Server con <code>mod_dav</code>. Autenticación Digest para el endpoint de uploads.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Configuración</div>
+  <h3>Módulos y estructura</h3>
+
+  <table>
+    <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Imagen base</td><td>httpd:2.4-alpine</td></tr>
+      <tr><td>Puerto</td><td>8081→80</td></tr>
+      <tr><td>Volumen htdocs</td><td>webdav → /usr/local/apache2/htdocs/</td></tr>
+      <tr><td>Volumen uploads</td><td>webdav-up → /usr/local/apache2/uploads/</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Módulos Apache habilitados</h4>
+  <pre>LoadModule dav_module modules/mod_dav.so
+LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule dav_lock_module modules/mod_dav_lock.so
+LoadModule auth_digest_module modules/mod_auth_digest.so
+LoadModule socache_dbm_module modules/mod_socache_dbm.so</pre>
+
+  <div class="box b-amber">
+    <div class="box-icon">⚠️</div>
+    <p><strong>Nota Alpine:</strong> se requiere instalar <code>apr-util-dbm_gdbm</code> vía <code>apk</code> porque la imagen Alpine no incluye el driver DBM necesario para <code>DavLockDB</code>.</p>
+  </div>
+
+  <h4>Verificar funcionamiento</h4>
+  <pre># OPTIONS debe mostrar: PROPFIND, PROPPATCH, COPY, MOVE, LOCK, UNLOCK, DELETE
+curl -v -X OPTIONS http://localhost:8081/uploads/
+
+# Upload debe responder 201 Created
+curl -v -T archivo.txt --digest -u admin:password http://localhost:8081/uploads/</pre>
+
+  <h4>Regenerar user.passwd</h4>
+  <pre>docker exec -it webdav htdigest -c /usr/local/apache2/user.passwd DAV-upload admin
+docker cp webdav:/usr/local/apache2/user.passwd ./webdav/</pre>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH5 LDAP -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch5">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 05</div>
+  <h2>LDAP</h2>
+  <p>Servidor de directorio centralizado de usuarios basado en OpenLDAP. Permite autenticación y autorización centralizada para todos los servicios de la plataforma. Sin puertos expuestos al host — solo accesible dentro de la red Docker.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Imagen y variables</div>
+  <h3>osixia/openldap:1.5.0</h3>
+  <p>No existe imagen oficial en Docker Hub para OpenLDAP. La imagen de Bitnami fue discontinuada. Se utilizó <code>osixia/openldap</code> por ser la más mantenida y documentada de la comunidad.</p>
+
+  <table>
+    <thead><tr><th>Variable</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>LDAP_ROOT</td><td>Sufijo base del directorio. Ej: dc=empresa,dc=com</td></tr>
+      <tr><td>LDAP_ADMIN_USERNAME</td><td>Usuario administrador del directorio</td></tr>
+      <tr><td>LDAP_ADMIN_PASSWORD</td><td>Contraseña del administrador</td></tr>
+      <tr><td>LDAP_ORGANISATION</td><td>Nombre de la organización raíz del árbol</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead><tr><th>Volumen</th><th>Ruta en contenedor</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>ldap_data</td><td>/var/lib/ldap</td><td>Datos del directorio LDAP</td></tr>
+      <tr><td>ldap_config</td><td>/etc/ldap/slapd.d</td><td>Configuración del servidor slapd</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box b-blue">
+    <div class="box-icon">ℹ️</div>
+    <p>El servicio es accesible únicamente dentro de la red interna Docker por nombre de contenedor (<code>ldap</code>) en los puertos <code>389</code> (LDAP) y <code>636</code> (LDAPS). No se exponen puertos al host.</p>
+  </div>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH6 DEPENDENCIAS -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch6">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 06</div>
+  <h2>Dependencias de arranque</h2>
+  <p>El orden de arranque en Docker Compose sin <code>depends_on</code> es no determinista. HAProxy intenta resolver los nombres de los backends al leer su configuración — si el contenedor destino no está listo, falla con <code>could not resolve address</code>.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Solución</div>
+  <h3>depends_on con conditions</h3>
+  <div class="flow">
+    <div class="flow-row"><div class="flow-lbl green">service_started</div><div class="flow-cnt"><code>haproxy1-int</code> depende de <code>ngx1</code> y <code>ngx2</code> con esta condition. Alcanza cuando solo necesitás que el proceso haya iniciado.</div></div>
+    <div class="flow-row"><div class="flow-lbl blue">service_healthy</div><div class="flow-cnt"><code>haproxy1-ssl</code> depende de <code>haproxy1-int</code> con esta condition. Requiere que el contenedor tenga healthcheck definido y lo pase.</div></div>
+    <div class="flow-row"><div class="flow-lbl amber">healthcheck</div><div class="flow-cnt">La imagen <code>haproxy:2.8</code> no incluye <code>wget</code> ni <code>curl</code>. Se usa el binario nativo: <code>haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg</code>.</div></div>
+  </div>
+
+  <div class="box b-red">
+    <div class="box-icon">⚠️</div>
+    <p><strong>Renombrar la carpeta raíz</strong> cambia el nombre de la red y el prefijo de los contenedores — los contenedores anteriores quedan huérfanos y hay que eliminarlos manualmente con <code>docker compose up --remove-orphans</code>.</p>
+  </div>
+
+  <h4>Recrear servicios individualmente</h4>
+  <pre># Recrear sin bajar el stack completo
+docker compose up --force-recreate &lt;nombre_servicio&gt;
+
+# Limpiar contenedores huérfanos
+docker compose up --remove-orphans</pre>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH7 PROMETHEUS -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch7">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 07</div>
+  <h2>Prometheus — Observabilidad</h2>
+  <p>Stack de observabilidad completo. Prometheus funciona en modo pull — va a buscar las métricas a cada exporter en el intervalo configurado. Un exporter por cada servicio monitoreable.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Pipeline</div>
+  <h3>Flujo de métricas</h3>
+  <div class="flow">
+    <div class="flow-row"><div class="flow-lbl blue">Servicio</div><div class="flow-cnt">El servicio produce métricas internas (HAProxy stats, Nginx stub_status, Redis INFO, Solr API).</div></div>
+    <div class="flow-row"><div class="flow-lbl amber">Exporter</div><div class="flow-cnt">Proceso intermediario que traduce las métricas al formato Prometheus y las expone en <code>/metrics</code>. Cada tecnología tiene su propio exporter.</div></div>
+    <div class="flow-row"><div class="flow-lbl green">Prometheus</div><div class="flow-cnt">Hace scrape de cada exporter según el intervalo configurado. Almacena las series temporales en su base de datos interna. Accesible en <code>:9090</code>.</div></div>
+  </div>
+
+  <h4>Tabla de exporters</h4>
+  <table>
+    <thead><tr><th>Contenedor</th><th>Imagen</th><th>Puerto</th><th>Scrape target</th></tr></thead>
+    <tbody>
+      <tr><td>ha1-int_exporter</td><td>quay.io/prometheus/haproxy-exporter</td><td>9101</td><td>haproxy1-int:8404/stats;csv</td></tr>
+      <tr><td>ha1-ssl_exporter</td><td>quay.io/prometheus/haproxy-exporter</td><td>9101</td><td>haproxy1-ssl:8404/stats;csv</td></tr>
+      <tr><td>ngx1_exporter</td><td>nginx/nginx-prometheus-exporter</td><td>9113</td><td>ngx1:80/stub_status</td></tr>
+      <tr><td>ngx2_exporter</td><td>nginx/nginx-prometheus-exporter</td><td>9113</td><td>ngx2:80/stub_status</td></tr>
+      <tr><td>redis_exporter</td><td>oliver006/redis_exporter</td><td>9121</td><td>master / slave / sentinel</td></tr>
+      <tr><td>solr_exporter</td><td>noony/prometheus-solr-exporter</td><td>9231</td><td>solr:8983</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box b-amber">
+    <div class="box-icon">🔧</div>
+    <p><strong>Fix HAProxy exporter:</strong> el scrape URI incluye <code>;csv</code>. El <code>;</code> debe pasarse como lista en el compose para evitar que el shell lo interprete como separador de comandos.</p>
+  </div>
+
+  <pre>command:
+  - "--haproxy.scrape-uri=http://haproxy1-int:8404/stats;csv"</pre>
+
+  <div class="box b-amber">
+    <div class="box-icon">🔧</div>
+    <p><strong>Fix Redis exporter:</strong> el master tiene autenticación. Sin <code>REDIS_PASSWORD</code> el exporter recibe <code>NOAUTH Authentication required</code> y reporta <code>redis_up 0</code>. Puerto debe mapearse como fijo <code>9121:9121</code> para evitar puerto efímero aleatorio.</p>
+  </div>
+
+  <pre>redis_exporter:
+  image: oliver006/redis_exporter
+  ports:
+    - "9121:9121"
+  environment:
+    - REDIS_ADDR=redis://redis-master:6379
+    - REDIS_PASSWORD=&lt;password_del_master&gt;</pre>
+
+  <div class="box b-amber">
+    <div class="box-icon">🔧</div>
+    <p><strong>Fix Solr exporter:</strong> la imagen usa flags con doble guión (<code>--</code>). La URL no debe incluir <code>/solr</code> al final — Solr 9 expone la API admin directamente en la raíz del puerto.</p>
+  </div>
+
+  <pre>solr_exporter:
+  image: noony/prometheus-solr-exporter
+  ports:
+    - "9231:9231"
+  command: ["--solr.address", "http://solr:8983"]</pre>
+
+  <h4>Verificar targets</h4>
+  <pre># Reload en caliente
+curl -X POST http://localhost:9090/-/reload
+
+# Ver estado de todos los targets
+http://localhost:9090/targets</pre>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH8 GRAFANA -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch8">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 08</div>
+  <h2>Grafana — Visualización</h2>
+  <p>Grafana no recolecta datos — los lee desde Prometheus y los presenta en dashboards. Datasource configurado apuntando al contenedor Prometheus por nombre de servicio dentro de la red Docker.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Dashboards</div>
+  <h3>Dashboards instalados</h3>
+
+  <table>
+    <thead><tr><th>Dashboard</th><th>ID</th><th>Servicio</th><th>Notas</th></tr></thead>
+    <tbody>
+      <tr><td>NGINX exporter</td><td>12708</td><td>ngx1, ngx2</td><td>—</td></tr>
+      <tr><td>HAProxy</td><td>12693</td><td>haproxy1-int, haproxy1-ssl</td><td>Variable host corregida</td></tr>
+      <tr><td>Redis Dashboard</td><td>763</td><td>redis-master, slave, sentinel</td><td>Requiere auth en exporter</td></tr>
+      <tr><td>Solr Monitoring</td><td>—</td><td>solr</td><td>Creado desde cero</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box b-amber">
+    <div class="box-icon">🔧</div>
+    <p><strong>Fix dashboard HAProxy 12693:</strong> la variable <code>host</code> busca la etiqueta <code>instance</code> en la métrica <code>haproxy_process_nbproc</code>, que no existe en el exporter legacy. Se corrigió desde <strong>Settings → Variables → host</strong> cambiando el campo <strong>Metric</strong> a <code>haproxy_frontend_bytes_in_total</code>.</p>
+  </div>
+
+  <div class="div"><span>dashboard solr — creado desde cero</span></div>
+
+  <h3>Solr Monitoring — paneles</h3>
+  <p>Dashboard construido manualmente usando las métricas del exporter <code>noony/prometheus-solr-exporter</code>.</p>
+
+  <table>
+    <thead><tr><th>Panel</th><th>Métrica</th><th>Tipo</th></tr></thead>
+    <tbody>
+      <tr><td>JVM Heap Usage</td><td>solr_jvm_memory_heap_usage</td><td>Gauge</td></tr>
+      <tr><td>JVM Heap Used</td><td>solr_jvm_memory_heap_used</td><td>Time series</td></tr>
+      <tr><td>Threads Activos</td><td>solr_jvm_threads_runnable_count</td><td>Stat</td></tr>
+      <tr><td>Open File Descriptors</td><td>solr_jvm_os_openfiledescriptorcount</td><td>Stat</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Conceptos clave</h4>
+  <div class="cards">
+    <div class="card blue"><div class="card-lbl">Datasource</div><h5>Conexión a Prometheus</h5><p>Los servicios se comunican por nombre dentro de la red Docker. URL: <code>http://prometheus:9090</code>.</p></div>
+    <div class="card green"><div class="card-lbl">Dashboard</div><h5>Colección de paneles</h5><p>Cada dashboard agrupa paneles relacionados. Se puede importar por ID desde grafana.com o construir desde cero.</p></div>
+    <div class="card amber"><div class="card-lbl">Panel</div><h5>Unidad mínima</h5><p>Cada panel tiene una query PromQL y un tipo de visualización: Time series, Gauge, Stat, Table.</p></div>
+  </div>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH9 ORACLE -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch9">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 09</div>
+  <h2>Oracle Database 23ai Free</h2>
+  <p>Oracle corre fuera de Docker en una VM dedicada con Oracle Linux 8.10. Esta decisión replica el modelo productivo real donde las bases de datos críticas no se contienen: requieren control total de recursos y no se benefician del modelo efímero de los contenedores.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Red segmentada</div>
+  <h3>Arquitectura de red</h3>
+  <pre>Windows host      192.168.56.1   (acceso SSH y SQL Developer)
+VM Ubuntu 24      192.168.56.10  (Docker + gateway hacia internet)
+VM Oracle Linux   192.168.56.20  (Oracle Database, sin internet directo)</pre>
+
+  <div class="cards">
+    <div class="card blue"><div class="card-lbl">Segmentación</div><h5>Defensa en profundidad</h5><p>Cada capa vive en su propia red. Oracle solo es alcanzable por el puerto 1521 desde la red interna.</p></div>
+    <div class="card green"><div class="card-lbl">IP forwarding</div><h5>Ubuntu como router</h5><p>La VM Ubuntu reenvía tráfico entre interfaces (<code>enp0s8 → enp0s3</code>), funcionando como gateway.</p></div>
+    <div class="card amber"><div class="card-lbl">NAT masquerading</div><h5>iptables</h5><p>El tráfico que sale desde Oracle Linux hacia internet aparece con la IP de Ubuntu, no con la de Oracle.</p></div>
+    <div class="card red"><div class="card-lbl">IPs fijas</div><h5>Sin DHCP</h5><p>En producción los servidores de base de datos nunca usan DHCP. Toda IP está asignada administrativamente.</p></div>
+  </div>
+
+  <h4>Reglas iptables para NAT masquerading</h4>
+  <pre>sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+sudo iptables -A FORWARD -i enp0s8 -o enp0s3 -j ACCEPT
+sudo iptables -A FORWARD -i enp0s3 -o enp0s8 -m state --state RELATED,ESTABLISHED -j ACCEPT</pre>
+
+  <div class="box b-amber">
+    <div class="box-icon">⚠️</div>
+    <p>Las reglas de iptables no persisten ante reinicios por defecto. Para hacerlas persistentes usar <code>iptables-persistent</code>.</p>
+  </div>
+
+  <h4>Información de la instancia</h4>
+  <table>
+    <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>SID</td><td>FREE</td></tr>
+      <tr><td>CDB</td><td>FREE</td></tr>
+      <tr><td>PDB</td><td>FREEPDB1</td></tr>
+      <tr><td>Puerto listener</td><td>1521</td></tr>
+      <tr><td>Límites</td><td>2 CPUs · 2 GB RAM · 12 GB datos</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Verificación</h4>
+  <pre># Estado del servicio
+/etc/init.d/oracle-free-23ai status
+
+# Conectarse como SYSDBA
+su - oracle &amp;&amp; sqlplus / as sysdba
+
+# Verificar instancia y PDB
+SELECT status FROM v$instance;
+SELECT name, open_mode FROM v$pdbs;
+
+# Verificar conectividad desde Ubuntu
+curl -v telnet://192.168.56.20:1521</pre>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH10 PUERTOS -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch10">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 10</div>
+  <h2>Registro de puertos e IPs</h2>
+  <p>Mapa completo de toda la infraestructura: VMs, contenedores Docker y servicios externos.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">VMs e infraestructura</div>
+  <h3>Hosts y redes</h3>
+  <table>
+    <thead><tr><th>Host</th><th>IP</th><th>Rol</th></tr></thead>
+    <tbody>
+      <tr><td>Windows host</td><td>192.168.56.1</td><td>Acceso SSH y administración</td></tr>
+      <tr><td>VM Ubuntu 24</td><td>192.168.0.x (bridge, DHCP)</td><td>Docker host, internet</td></tr>
+      <tr><td>VM Ubuntu 24</td><td>192.168.56.10 (host-only, fija)</td><td>Gateway para Oracle</td></tr>
+      <tr><td>VM Oracle Linux 8</td><td>192.168.56.20 (host-only, fija)</td><td>Oracle Database 23ai Free</td></tr>
+    </tbody>
+  </table>
+
+  <div class="div"><span>contenedores docker</span></div>
+
+  <table>
+    <thead><tr><th>Contenedor</th><th>Puerto host</th><th>Puerto contenedor</th><th>Descripción</th></tr></thead>
+    <tbody>
+      <tr><td>haproxy1-ssl</td><td>8080</td><td>443</td><td>HTTPS externo (SSL termination)</td></tr>
+      <tr><td>haproxy1-ssl</td><td>8405</td><td>8404</td><td>HAProxy SSL stats</td></tr>
+      <tr><td>haproxy1-int</td><td>443</td><td>80</td><td>Balanceo interno round-robin</td></tr>
+      <tr><td>haproxy1-int</td><td>8404</td><td>8404</td><td>HAProxy INT stats</td></tr>
+      <tr><td>ngx1</td><td>—</td><td>—</td><td>Solo red interna Docker</td></tr>
+      <tr><td>ngx2</td><td>—</td><td>—</td><td>Solo red interna Docker</td></tr>
+      <tr><td>redis-master</td><td>—</td><td>6379</td><td>Solo red interna Docker</td></tr>
+      <tr><td>redis-slave</td><td>—</td><td>6379</td><td>Solo red interna Docker</td></tr>
+      <tr><td>redis-sentinel</td><td>—</td><td>26379</td><td>Solo red interna Docker</td></tr>
+      <tr><td>solr</td><td>8983</td><td>8983</td><td>Panel admin Solr</td></tr>
+      <tr><td>webdav</td><td>8081</td><td>80</td><td>WebDAV HTTP</td></tr>
+      <tr><td>ldap</td><td>—</td><td>389 / 636</td><td>Solo red interna Docker</td></tr>
+      <tr><td>ha1-int_exporter</td><td>—</td><td>9101</td><td>Exporter HAProxy INT → Prometheus</td></tr>
+      <tr><td>ha1-ssl_exporter</td><td>—</td><td>9101</td><td>Exporter HAProxy SSL → Prometheus</td></tr>
+      <tr><td>ngx1_exporter</td><td>—</td><td>9113</td><td>Exporter nginx ngx1 → Prometheus</td></tr>
+      <tr><td>ngx2_exporter</td><td>—</td><td>9113</td><td>Exporter nginx ngx2 → Prometheus</td></tr>
+      <tr><td>redis_exporter</td><td>9121</td><td>9121</td><td>Exporter Redis → Prometheus</td></tr>
+      <tr><td>solr_exporter</td><td>9231</td><td>9231</td><td>Exporter Solr → Prometheus</td></tr>
+      <tr><td>prometheus</td><td>9090</td><td>9090</td><td>Recolección de métricas</td></tr>
+      <tr><td>grafana</td><td>3000</td><td>3000</td><td>Visualización de métricas</td></tr>
+      <tr><td>traffic-generator</td><td>—</td><td>—</td><td>Generador de tráfico interno</td></tr>
+    </tbody>
+  </table>
+
+  <div class="div"><span>servicios externos</span></div>
+
+  <table>
+    <thead><tr><th>Servicio</th><th>Host</th><th>Puerto</th><th>Protocolo</th></tr></thead>
+    <tbody>
+      <tr><td>Oracle Database 23ai Free</td><td>192.168.56.20</td><td>1521</td><td>TCP (TNS)</td></tr>
+    </tbody>
+  </table>
+</div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- CH11 TRAFFIC GENERATOR -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="ch11">
+<div class="ch-banner">
+  <div class="ch-tag">Sección 11</div>
+  <h2>Traffic Generator</h2>
+  <p>Servicio dedicado a generar tráfico sostenido y variado hacia todos los componentes de la arquitectura. No es stress testing — el objetivo es mantener datos reales y continuos en los dashboards de Grafana para análisis y visualización.</p>
+</div>
+<div class="wrap">
+<div class="sec">
+  <div class="sec-label">Arquitectura</div>
+  <h3>Contenedor interno a la red Docker</h3>
+  <p>El generador corre dentro de la red Docker, accediendo a los servicios directamente por nombre de contenedor. Esto permite alcanzar servicios sin puertos expuestos al host como <code>redis-master</code>, <code>ngx1</code> y <code>ngx2</code>.</p>
+
+  <div class="box b-blue">
+    <div class="box-icon">ℹ️</div>
+    <p><strong>Imagen base:</strong> <code>python:3.12-alpine</code> con dependencias <code>requests</code> y <code>redis-py</code>. El script <code>generator.py</code> lanza threads paralelos por componente y corre indefinidamente.</p>
+  </div>
+
+  <h4>Workers por componente</h4>
+  <table>
+    <thead><tr><th>Componente</th><th>Threads</th><th>Delay base</th><th>Operaciones</th></tr></thead>
+    <tbody>
+      <tr><td>HAProxy (int)</td><td>5</td><td>0.3s</td><td>GET 80% · POST 15% · HEAD 5% — 10 rutas, User-Agents variados</td></tr>
+      <tr><td>Redis</td><td>4</td><td>0.1s</td><td>SET/GET (mix hits+misses), INCR, LPUSH, HSET, EXPIRE, DEL</td></tr>
+      <tr><td>Solr</td><td>3</td><td>0.5s</td><td>Queries por término, facets, indexado de docs, borrado periódico</td></tr>
+      <tr><td>WebDAV</td><td>2</td><td>1.0s</td><td>PUT, GET, DELETE, PROPFIND — pool de hasta 50 archivos activos</td></tr>
+    </tbody>
+  </table>
+
+  <p>El delay incluye variación aleatoria de ±40% para evitar tráfico perfectamente uniforme. Cada 15 segundos se loguea un resumen de operaciones ok/err por componente.</p>
+
+  <h4>Estructura de archivos</h4>
+  <pre>traffic-generator/
+    Dockerfile         # python:3.12-alpine
+    generator.py       # script principal con workers por componente
+    requirements.txt   # requests, redis-py</pre>
+
+  <h4>Configuración en docker-compose</h4>
+  <pre>traffic-generator:
+  container_name: traffic-generator
+  build: ./traffic-generator
+  environment:
+    - STARTUP_WAIT=20   # espera inicial en segundos
+  depends_on:
+    haproxy1-int:
+      condition: service_healthy
+    redis-master:
+      condition: service_healthy
+  restart: unless-stopped</pre>
+
+  <div class="box b-green">
+    <div class="box-icon">✅</div>
+    <p><strong>depends_on:</strong> el contenedor espera a que <code>haproxy1-int</code> y <code>redis-master</code> pasen su healthcheck antes de arrancar. El <code>STARTUP_WAIT</code> agrega un margen adicional para Solr y WebDAV que no tienen healthcheck definido.</p>
+  </div>
+
+  <h4>Control del servicio</h4>
+  <pre># Levantar solo el generador (sin bajar el stack completo)
+docker compose up -d --build traffic-generator
+
+# Ver logs en tiempo real — resumen cada 15s
+docker logs -f traffic-generator
+
+# Pausar sin eliminar el contenedor
+docker stop traffic-generator
+
+# Reanudar
+docker start traffic-generator</pre>
+
+  <div class="cards">
+    <div class="card blue"><div class="card-lbl">Continuidad</div><h5>While True por worker</h5><p>Cada thread corre indefinidamente. El servicio no termina solo — se controla con <code>docker stop/start</code>.</p></div>
+    <div class="card green"><div class="card-lbl">Intensidad</div><h5>Configurable</h5><p>Ajustar <code>*_workers</code> y <code>*_delay</code> en el bloque <code>CFG</code> del script para modificar la carga sin tocar la lógica.</p></div>
+    <div class="card amber"><div class="card-lbl">Reinicio</div><h5>unless-stopped</h5><p>Si la VM se reinicia, el generador vuelve a arrancar automáticamente junto con todo el stack.</p></div>
+  </div>
+</div>
+</div></div>
+
+<footer>Dockham City · Docker Infrastructure · dotorbisman · 2026</footer>
+
+<script>
+const secs = document.querySelectorAll("[id^='ch']"); // incluye ch11
+const links = document.querySelectorAll("nav a");
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      links.forEach(l => l.style.color = '');
+      const lnk = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if(lnk) lnk.style.color = 'var(--ink)';
+    }
+  });
+}, {threshold: 0.3});
+secs.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
