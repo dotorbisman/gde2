@@ -461,6 +461,62 @@ firewall-cmd --permanent --add-port=1521/tcp && firewall-cmd --reload
 
 ---
 
+## Traffic Generator
+
+Servicio dedicado a generar tráfico sostenido y variado hacia todos los componentes de la arquitectura. Su objetivo no es el stress testing sino mantener datos reales y continuos en los dashboards de Grafana para análisis posterior.
+
+**Imagen:** Python 3.12-alpine con `requests` y `redis-py`  
+**Carpeta:** `traffic-generator/`
+
+```
+traffic-generator/
+    Dockerfile
+    generator.py
+    requirements.txt
+```
+
+El generador corre dentro de la red Docker, por lo que accede a los servicios directamente por nombre de contenedor, incluyendo aquellos sin puertos expuestos al host (redis-master, ngx1, ngx2).
+
+### Workers por componente
+
+| Componente | Threads | Delay base | Operaciones |
+|---|---|---|---|
+| HAProxy (int) | 5 | 0.3s | GET 80%, POST 15%, HEAD 5% — 10 rutas distintas, User-Agents variados |
+| Redis | 4 | 0.1s | SET/GET (mix hits+misses), INCR, LPUSH, HSET, EXPIRE, DEL |
+| Solr | 3 | 0.5s | Queries por término, facets, indexado de docs, borrado periódico |
+| WebDAV | 2 | 1.0s | PUT, GET, DELETE, PROPFIND — pool de hasta 50 archivos activos |
+
+El delay incluye variación aleatoria de ±40% para evitar tráfico perfectamente uniforme.
+
+### Comportamiento
+
+- Corre indefinidamente mientras el contenedor esté activo (`while True` por worker).
+- Loguea un resumen de operaciones ok/err cada 15 segundos.
+- Espera 20 segundos al arrancar (`STARTUP_WAIT`) para que los demás servicios estén listos.
+- Se reinicia automáticamente ante reinicios del host (`restart: unless-stopped`).
+
+### Control
+
+```bash
+# Levantar solo el generador (sin bajar el stack)
+docker compose up -d --build traffic-generator
+
+# Ver logs en tiempo real
+docker logs -f traffic-generator
+
+# Pausar sin eliminar
+docker stop traffic-generator
+
+# Reanudar
+docker start traffic-generator
+```
+
+### depends_on
+
+El contenedor depende de `haproxy1-int` con `condition: service_healthy` y de `redis-master` con `condition: service_healthy`, garantizando que los servicios principales estén operativos antes de empezar a generar tráfico.
+
+---
+
 ## Registro de puertos e IPs
 
 ### VMs e infraestructura
@@ -496,6 +552,7 @@ firewall-cmd --permanent --add-port=1521/tcp && firewall-cmd --reload
 | `solr_exporter` | — | `9231` | Exporter Solr → Prometheus |
 | `prometheus` | `9090` | `9090` | Recolección de métricas |
 | `grafana` | `3000` | `3000` | Visualización de métricas |
+| `traffic-generator` | — | — | Generador de tráfico interno |
 
 ### Servicios externos (fuera de Docker)
 

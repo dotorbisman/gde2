@@ -91,7 +91,9 @@ services:
         condition: service_healthy
       redis-slave:
         condition: service_healthy
-
+  
+  # --------------- FIN REDIS ---------------
+  
   # --- SOLR ---      
   solr:
     container_name: solr
@@ -145,6 +147,24 @@ services:
       - "3000:3000"
     volumes:
       - grafa:/var/lib/grafana
+
+
+# --- TRAFFIC GENERATOR ---
+  traffic-generator:
+    container_name: traffic-generator
+    build: ./traffic-generator
+    environment:
+      # Tiempo de espera inicial antes de empezar a generar tráfico.
+      # Dale margen para que Redis, Solr y HAProxy terminen de arrancar.
+      - STARTUP_WAIT=30
+    depends_on:
+      haproxy1-int:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+    restart: unless-stopped
+
+
 
 
 
